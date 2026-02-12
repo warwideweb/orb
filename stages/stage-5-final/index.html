@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/orb-192.png">
+<title>ORB — AI Launcher</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --core:#0066FF;--purple:#8B00FF;--cyan:#00FFFF;--pink:#FF006E;
+  --bg:#000;--text:rgba(255,255,255,.9);--dim:rgba(255,255,255,.35);
+  --orb-size:min(65vw, 65vh, 320px);
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none}
+body{display:flex;flex-direction:column;align-items:center;justify-content:center}
+
+/* ── STATUS BAR ── */
+.status{position:fixed;top:env(safe-area-inset-top,12px);left:0;right:0;display:flex;justify-content:space-between;padding:12px 24px;font-size:12px;font-weight:300;color:var(--dim);z-index:100;letter-spacing:.5px}
+
+/* ── GREETING ── */
+.greeting{position:fixed;top:18%;left:0;right:0;text-align:center;font-size:clamp(18px,4vw,26px);font-weight:200;letter-spacing:1px;color:rgba(255,255,255,.5);opacity:0;animation:greetFade 3.5s ease forwards;pointer-events:none;z-index:5}
+@keyframes greetFade{0%{opacity:0;transform:translateY(10px)}15%{opacity:1;transform:translateY(0)}75%{opacity:1}100%{opacity:0}}
+
+/* ── ORB CONTAINER ── */
+.orb-wrap{position:relative;width:var(--orb-size);height:var(--orb-size);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10}
+
+/* ── AMBIENT GLOW (behind everything) ── */
+.ambient{position:absolute;width:160%;height:160%;border-radius:50%;background:radial-gradient(circle,rgba(0,102,255,.12) 0%,rgba(139,0,255,.06) 40%,transparent 70%);animation:ambientPulse 5s ease-in-out infinite;pointer-events:none;filter:blur(30px)}
+@keyframes ambientPulse{0%,100%{transform:scale(1);opacity:.6}50%{transform:scale(1.08);opacity:1}}
+
+/* ── ORB CORE ── */
+.orb{position:relative;width:100%;height:100%;border-radius:50%;background:radial-gradient(ellipse at 35% 30%,rgba(0,255,255,.25),transparent 50%),radial-gradient(ellipse at 65% 70%,rgba(139,0,255,.3),transparent 50%),radial-gradient(circle at 50% 50%,#0044cc 0%,#1a0066 50%,#000022 100%);box-shadow:0 0 60px 10px rgba(0,102,255,.25),0 0 120px 40px rgba(139,0,255,.1),inset 0 0 80px rgba(0,102,255,.15);animation:orbBreathe 4s ease-in-out infinite;transition:transform .4s cubic-bezier(.34,1.56,.64,1),box-shadow .4s ease;will-change:transform}
+@keyframes orbBreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.025)}}
+
+/* Glass highlight */
+.orb::before{content:'';position:absolute;top:8%;left:15%;width:55%;height:40%;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,.12) 0%,transparent 100%);pointer-events:none}
+
+/* Rotating gradient overlay */
+.orb::after{content:'';position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,transparent,rgba(0,255,255,.08),transparent,rgba(139,0,255,.08),transparent);animation:orbSpin 20s linear infinite;pointer-events:none}
+@keyframes orbSpin{to{transform:rotate(360deg)}}
+
+/* ── PARTICLE CANVAS ── */
+#particles{position:absolute;inset:-25%;width:150%;height:150%;pointer-events:none;z-index:1}
+
+/* ── WAVEFORM CANVAS (voice mode) ── */
+#waveform{position:absolute;inset:-15%;width:130%;height:130%;pointer-events:none;z-index:2;opacity:0;transition:opacity .5s ease}
+.voice-active #waveform{opacity:1}
+
+/* ── TOUCH STATES ── */
+.orb-wrap.touched .orb{transform:scale(1.06);box-shadow:0 0 80px 20px rgba(0,102,255,.4),0 0 160px 60px rgba(139,0,255,.2),inset 0 0 100px rgba(0,102,255,.2)}
+.orb-wrap.voice-active .orb{transform:scale(1.12);box-shadow:0 0 100px 30px rgba(0,102,255,.5),0 0 200px 80px rgba(139,0,255,.25),inset 0 0 120px rgba(0,255,255,.15);animation:none}
+
+/* ── RADIAL MENU ── */
+.radial-menu{position:absolute;width:100%;height:100%;pointer-events:none;z-index:20}
+.app-icon{position:absolute;top:50%;left:50%;width:58px;height:58px;margin:-29px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:50%;background:rgba(255,255,255,.06);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);opacity:0;transform:scale(0) translate(0,0);transition:all .45s cubic-bezier(.34,1.56,.64,1);pointer-events:none;cursor:pointer;z-index:21}
+.app-icon.visible{opacity:1;transform:scale(1) translate(var(--tx),var(--ty));pointer-events:auto}
+.app-icon:active{transform:scale(.9) translate(var(--tx),var(--ty))!important;background:rgba(0,102,255,.3)}
+.app-icon .emoji{font-size:22px;line-height:1}
+.app-label{position:absolute;bottom:-20px;font-size:9px;font-weight:300;color:var(--dim);white-space:nowrap;letter-spacing:.3px}
+.app-icon .fav{position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 6px rgba(0,255,255,.6)}
+
+/* ── VOICE UI ── */
+.voice-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);opacity:0;pointer-events:none;transition:opacity .4s ease;z-index:5}
+.voice-active~.voice-overlay{opacity:1}
+.voice-text{position:fixed;bottom:22%;left:0;right:0;text-align:center;z-index:30;pointer-events:none}
+.voice-status{font-size:14px;font-weight:300;color:rgba(0,255,255,.7);letter-spacing:2px;text-transform:uppercase;opacity:0;transition:opacity .3s;margin-bottom:12px}
+.voice-active~.voice-text .voice-status{opacity:1}
+.voice-transcript{font-size:clamp(16px,4vw,22px);font-weight:200;color:var(--text);min-height:30px;padding:0 30px;line-height:1.5;opacity:0;transition:opacity .3s}
+.voice-active~.voice-text .voice-transcript{opacity:1}
+.voice-response{font-size:clamp(14px,3.5vw,18px);font-weight:300;color:rgba(255,255,255,.6);min-height:24px;padding:0 30px;margin-top:10px;opacity:0;transition:opacity .3s}
+.voice-active~.voice-text .voice-response{opacity:1}
+
+/* ── LISTENING INDICATOR ── */
+.listening-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--cyan);margin-left:6px;animation:blink 1s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* ── SIMULATED APP LAUNCH ── */
+.launch-flash{position:fixed;inset:0;background:rgba(0,102,255,.15);opacity:0;pointer-events:none;z-index:100;transition:opacity .15s}
+.launch-flash.active{opacity:1}
+
+/* ── INSTALL BANNER ── */
+.install-banner{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(180deg,transparent,rgba(0,20,60,.95));padding:30px 24px calc(env(safe-area-inset-bottom,20px) + 20px);z-index:200;transform:translateY(100%);transition:transform .4s ease;text-align:center}
+.install-banner.visible{transform:translateY(0)}
+.install-banner h3{font-size:16px;font-weight:400;letter-spacing:1px;margin-bottom:8px}
+.install-banner p{font-size:12px;color:var(--dim);margin-bottom:16px}
+.install-btn{background:var(--core);color:#fff;border:none;padding:12px 32px;border-radius:30px;font-size:14px;font-weight:500;letter-spacing:1px;cursor:pointer;transition:all .2s}
+.install-btn:active{transform:scale(.95)}
+.install-dismiss{background:none;border:none;color:var(--dim);font-size:12px;margin-top:12px;cursor:pointer;padding:8px}
+
+/* ── INSTRUCTION HINT ── */
+.hint{position:fixed;bottom:max(env(safe-area-inset-bottom,20px),20px);left:0;right:0;text-align:center;font-size:11px;font-weight:300;color:var(--dim);letter-spacing:.8px;z-index:50;padding:0 20px}
+.hint span{display:block;margin-top:4px}
+
+/* ── BRANDING ── */
+.brand{position:fixed;bottom:calc(max(env(safe-area-inset-bottom,20px),20px) + 50px);left:0;right:0;text-align:center;font-size:10px;font-weight:400;letter-spacing:6px;text-transform:uppercase;color:rgba(255,255,255,.15);z-index:50}
+</style>
+</head>
+<body>
+
+<div class="status">
+  <span id="clock"></span>
+  <span>ORB</span>
+</div>
+
+<div class="greeting" id="greeting"></div>
+
+<div class="orb-wrap" id="orbWrap">
+  <div class="ambient"></div>
+  <canvas id="particles"></canvas>
+  <canvas id="waveform"></canvas>
+  <div class="orb" id="orb"></div>
+  <div class="radial-menu" id="radialMenu"></div>
+</div>
+
+<div class="voice-overlay"></div>
+<div class="voice-text">
+  <div class="voice-status" id="voiceStatus">Listening<span class="listening-dot"></span></div>
+  <div class="voice-transcript" id="voiceTranscript"></div>
+  <div class="voice-response" id="voiceResponse"></div>
+</div>
+
+<div class="launch-flash" id="launchFlash"></div>
+
+<!-- Install Banner -->
+<div class="install-banner" id="installBanner">
+  <h3>Install ORB</h3>
+  <p>Add to your home screen for the full experience</p>
+  <button class="install-btn" id="installBtn">Install App</button>
+  <button class="install-dismiss" id="installDismiss">Not now</button>
+</div>
+
+<div class="brand">O R B</div>
+<div class="hint">
+  <span>tap → apps &nbsp;·&nbsp; hold → voice</span>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════
+const APPS = [
+  { emoji:'📱', name:'Phone', count:0 },
+  { emoji:'💬', name:'Messages', count:0 },
+  { emoji:'📷', name:'Camera', count:0 },
+  { emoji:'🎵', name:'Spotify', count:0 },
+  { emoji:'📧', name:'Gmail', count:0 },
+  { emoji:'🗺️', name:'Maps', count:0 },
+  { emoji:'📸', name:'Instagram', count:0 },
+  { emoji:'🐦', name:'X', count:0 },
+];
+
+// Load saved counts
+try {
+  const saved = JSON.parse(localStorage.getItem('orb_counts') || '{}');
+  APPS.forEach(a => { if(saved[a.name]) a.count = saved[a.name]; });
+} catch(e){}
+
+function saveCounts(){
+  const o = {}; APPS.forEach(a => o[a.name] = a.count);
+  try { localStorage.setItem('orb_counts', JSON.stringify(o)); } catch(e){}
+}
+
+// ═══════════════════════════════════════════
+// PWA INSTALL PROMPT
+// ═══════════════════════════════════════════
+let deferredPrompt;
+const installBanner = document.getElementById('installBanner');
+const installBtn = document.getElementById('installBtn');
+const installDismiss = document.getElementById('installDismiss');
+
+// Check if already installed or dismissed
+const isInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+const wasDismissed = localStorage.getItem('orb_install_dismissed');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  if(!isInstalled && !wasDismissed){
+    setTimeout(() => installBanner.classList.add('visible'), 2000);
+  }
+});
+
+installBtn.addEventListener('click', async () => {
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if(outcome === 'accepted'){
+      installBanner.classList.remove('visible');
+    }
+    deferredPrompt = null;
+  }
+});
+
+installDismiss.addEventListener('click', () => {
+  installBanner.classList.remove('visible');
+  localStorage.setItem('orb_install_dismissed', 'true');
+});
+
+// ═══════════════════════════════════════════
+// SERVICE WORKER REGISTRATION
+// ═══════════════════════════════════════════
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(e => console.log('SW registration failed'));
+}
+
+// ═══════════════════════════════════════════
+// CLOCK + GREETING
+// ═══════════════════════════════════════════
+const clockEl = document.getElementById('clock');
+const greetEl = document.getElementById('greeting');
+
+function updateClock(){
+  const d = new Date();
+  clockEl.textContent = d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:true});
+}
+updateClock(); setInterval(updateClock, 10000);
+
+(function setGreeting(){
+  const h = new Date().getHours();
+  const g = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+  greetEl.textContent = g;
+})();
+
+// ═══════════════════════════════════════════
+// PARTICLE SYSTEM
+// ═══════════════════════════════════════════
+const pCanvas = document.getElementById('particles');
+const pCtx = pCanvas.getContext('2d');
+let particles = [];
+let pW, pH;
+
+function resizeParticles(){
+  const r = pCanvas.parentElement.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  pW = r.width; pH = r.height;
+  pCanvas.width = pW * dpr; pCanvas.height = pH * dpr;
+  pCanvas.style.width = pW + 'px'; pCanvas.style.height = pH + 'px';
+  pCtx.setTransform(dpr,0,0,dpr,0,0);
+}
+resizeParticles();
+window.addEventListener('resize', resizeParticles);
+
+const NUM_PARTICLES = 40;
+for(let i = 0; i < NUM_PARTICLES; i++){
+  const angle = Math.random() * Math.PI * 2;
+  const radius = 0.38 + Math.random() * 0.12;
+  particles.push({
+    angle, radius,
+    speed: 0.002 + Math.random() * 0.004,
+    size: 1 + Math.random() * 2,
+    alpha: 0.2 + Math.random() * 0.5,
+    hue: Math.random() > 0.5 ? 200 : 270
+  });
+}
+
+let particleSpeedMult = 1;
+let isVoiceMode = false;
+
+function drawParticles(){
+  pCtx.clearRect(0, 0, pW, pH);
+  if(isVoiceMode) return;
+  const cx = pW / 2, cy = pH / 2;
+  const baseR = pW * 0.33;
+  particles.forEach(p => {
+    p.angle += p.speed * particleSpeedMult;
+    const r = baseR * p.radius;
+    const x = cx + Math.cos(p.angle) * r;
+    const y = cy + Math.sin(p.angle) * r;
+    pCtx.beginPath();
+    pCtx.arc(x, y, p.size, 0, Math.PI * 2);
+    pCtx.fillStyle = `hsla(${p.hue},100%,70%,${p.alpha * 0.6})`;
+    pCtx.fill();
+    pCtx.beginPath();
+    pCtx.arc(x, y, p.size * 3, 0, Math.PI * 2);
+    pCtx.fillStyle = `hsla(${p.hue},100%,70%,${p.alpha * 0.1})`;
+    pCtx.fill();
+  });
+}
+
+// ═══════════════════════════════════════════
+// WAVEFORM VISUALIZER
+// ═══════════════════════════════════════════
+const wCanvas = document.getElementById('waveform');
+const wCtx = wCanvas.getContext('2d');
+let wW, wH;
+
+function resizeWave(){
+  const r = wCanvas.parentElement.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  wW = r.width * 1.3; wH = r.height * 1.3;
+  wCanvas.width = wW * dpr; wCanvas.height = wH * dpr;
+  wCanvas.style.width = wW + 'px'; wCanvas.style.height = wH + 'px';
+  wCtx.setTransform(dpr,0,0,dpr,0,0);
+}
+resizeWave();
+window.addEventListener('resize', resizeWave);
+
+let audioLevel = 0;
+let targetAudioLevel = 0;
+
+function drawWaveform(time){
+  wCtx.clearRect(0, 0, wW, wH);
+  if(!isVoiceMode) return;
+  audioLevel += (targetAudioLevel - audioLevel) * 0.1;
+  const cx = wW / 2, cy = wH / 2;
+  const baseR = wW * 0.27;
+  const bars = 64;
+  for(let i = 0; i < bars; i++){
+    const angle = (i / bars) * Math.PI * 2 - Math.PI / 2;
+    const noise = Math.sin(time * 0.003 + i * 0.5) * 0.3 + Math.sin(time * 0.005 + i * 0.8) * 0.2;
+    const amp = (0.08 + audioLevel * 0.4 + noise * 0.15) * baseR;
+    const r1 = baseR - amp * 0.3;
+    const r2 = baseR + amp;
+    const x1 = cx + Math.cos(angle) * r1;
+    const y1 = cy + Math.sin(angle) * r1;
+    const x2 = cx + Math.cos(angle) * r2;
+    const y2 = cy + Math.sin(angle) * r2;
+    const gradient = wCtx.createLinearGradient(x1, y1, x2, y2);
+    const hue = 190 + (i / bars) * 80;
+    gradient.addColorStop(0, `hsla(${hue},100%,60%,0)`);
+    gradient.addColorStop(0.5, `hsla(${hue},100%,65%,${0.4 + audioLevel * 0.4})`);
+    gradient.addColorStop(1, `hsla(${hue},100%,70%,0)`);
+    wCtx.beginPath();
+    wCtx.moveTo(x1, y1);
+    wCtx.lineTo(x2, y2);
+    wCtx.strokeStyle = gradient;
+    wCtx.lineWidth = 2.5;
+    wCtx.lineCap = 'round';
+    wCtx.stroke();
+  }
+}
+
+// ═══════════════════════════════════════════
+// ANIMATION LOOP
+// ═══════════════════════════════════════════
+function animate(time){
+  drawParticles();
+  drawWaveform(time);
+  requestAnimationFrame(animate);
+}
+requestAnimationFrame(animate);
+
+// ═══════════════════════════════════════════
+// HAPTICS
+// ═══════════════════════════════════════════
+function haptic(pattern){
+  if(navigator.vibrate) navigator.vibrate(pattern);
+}
+
+// ═══════════════════════════════════════════
+// RADIAL MENU
+// ═══════════════════════════════════════════
+const orbWrap = document.getElementById('orbWrap');
+const radialMenu = document.getElementById('radialMenu');
+const launchFlash = document.getElementById('launchFlash');
+let menuOpen = false;
+
+function buildMenu(){
+  radialMenu.innerHTML = '';
+  const sorted = [...APPS].sort((a,b) => b.count - a.count);
+  const radius = orbWrap.offsetWidth * 0.65;
+  sorted.forEach((app, i) => {
+    const angle = (i / sorted.length) * Math.PI * 2 - Math.PI / 2;
+    const tx = Math.cos(angle) * radius;
+    const ty = Math.sin(angle) * radius;
+    const el = document.createElement('div');
+    el.className = 'app-icon';
+    el.style.setProperty('--tx', tx + 'px');
+    el.style.setProperty('--ty', ty + 'px');
+    el.style.transitionDelay = (i * 35) + 'ms';
+    el.innerHTML = `<span class="emoji">${app.emoji}</span><span class="app-label">${app.name}</span>`;
+    if(i === 0 && app.count > 0) el.innerHTML += '<span class="fav"></span>';
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      haptic(25);
+      app.count++;
+      saveCounts();
+      launchApp(app.name);
+    });
+    radialMenu.appendChild(el);
+  });
+}
+buildMenu();
+
+function openMenu(){
+  if(menuOpen || isVoiceMode) return;
+  menuOpen = true;
+  haptic(15);
+  particleSpeedMult = 0.3;
+  buildMenu();
+  requestAnimationFrame(() => {
+    radialMenu.querySelectorAll('.app-icon').forEach(el => el.classList.add('visible'));
+  });
+}
+
+function closeMenu(){
+  if(!menuOpen) return;
+  menuOpen = false;
+  particleSpeedMult = 1;
+  radialMenu.querySelectorAll('.app-icon').forEach((el, i) => {
+    el.style.transitionDelay = (i * 20) + 'ms';
+    el.classList.remove('visible');
+  });
+}
+
+function launchApp(name){
+  closeMenu();
+  launchFlash.classList.add('active');
+  document.getElementById('voiceResponse').textContent = `Opening ${name}...`;
+  document.getElementById('voiceResponse').style.opacity = '1';
+  setTimeout(() => launchFlash.classList.remove('active'), 200);
+  setTimeout(() => document.getElementById('voiceResponse').style.opacity = '0', 1800);
+}
+
+// ═══════════════════════════════════════════
+// VOICE MODE
+// ═══════════════════════════════════════════
+const voiceStatus = document.getElementById('voiceStatus');
+const voiceTranscript = document.getElementById('voiceTranscript');
+const voiceResponse = document.getElementById('voiceResponse');
+let recognition = null;
+let recognizing = false;
+
+function enterVoiceMode(){
+  if(isVoiceMode) return;
+  isVoiceMode = true;
+  closeMenu();
+  haptic([10,30,20,30,40]);
+  orbWrap.classList.add('voice-active');
+  voiceTranscript.textContent = '';
+  voiceResponse.textContent = '';
+  voiceStatus.innerHTML = 'Listening<span class="listening-dot"></span>';
+  simulateAudio();
+  startRecognition();
+}
+
+function exitVoiceMode(){
+  isVoiceMode = false;
+  orbWrap.classList.remove('voice-active');
+  targetAudioLevel = 0;
+  if(recognition && recognizing){
+    recognizing = false;
+    try { recognition.stop(); } catch(e){}
+  }
+}
+
+let audioSim;
+function simulateAudio(){
+  clearInterval(audioSim);
+  audioSim = setInterval(() => {
+    if(!isVoiceMode){ clearInterval(audioSim); return; }
+    targetAudioLevel = 0.05 + Math.random() * 0.1;
+  }, 150);
+}
+
+function startRecognition(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){
+    voiceStatus.textContent = 'Voice not supported — try Chrome';
+    setTimeout(exitVoiceMode, 2500);
+    return;
+  }
+  recognition = new SR();
+  recognition.lang = 'en-US';
+  recognition.interimResults = true;
+  recognition.continuous = false;
+
+  recognition.onstart = () => { recognizing = true; };
+  recognition.onresult = (e) => {
+    let interim = '', final = '';
+    for(let i = e.resultIndex; i < e.results.length; i++){
+      if(e.results[i].isFinal) final += e.results[i][0].transcript;
+      else interim += e.results[i][0].transcript;
+    }
+    voiceTranscript.textContent = final || interim;
+    targetAudioLevel = 0.4 + Math.random() * 0.5;
+    if(final) processCommand(final.trim().toLowerCase());
+  };
+  recognition.onerror = (e) => {
+    if(e.error === 'not-allowed'){
+      voiceStatus.textContent = 'Mic access needed';
+      setTimeout(exitVoiceMode, 2000);
+    }
+  };
+  recognition.onend = () => {
+    recognizing = false;
+    targetAudioLevel = 0;
+    if(isVoiceMode && !voiceTranscript.textContent){
+      try { recognition.start(); recognizing = true; } catch(e){}
+    }
+  };
+  try { recognition.start(); } catch(e){}
+}
+
+function processCommand(cmd){
+  haptic([20,50,20]);
+  voiceStatus.textContent = 'Processing...';
+  targetAudioLevel = 0;
+
+  let response = '';
+  const openMatch = cmd.match(/(?:open|launch|start|show me|go to)\s+(.+)/);
+  if(openMatch){
+    const target = openMatch[1];
+    const found = APPS.find(a => a.name.toLowerCase().includes(target) || target.includes(a.name.toLowerCase()));
+    if(found){
+      response = `Opening ${found.name}`;
+      found.count++;
+      saveCounts();
+      setTimeout(() => {
+        launchFlash.classList.add('active');
+        setTimeout(() => launchFlash.classList.remove('active'), 200);
+      }, 600);
+    } else if(target.includes('photo') || target.includes('picture')){
+      response = `Searching photos for "${target}"...`;
+    } else {
+      response = `I found "${target}" — launching now`;
+    }
+  } else if(cmd.includes('time') || cmd.includes('what time')){
+    const t = new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+    response = `It's ${t}`;
+  } else if(cmd.includes('timer') || cmd.includes('minute')){
+    response = 'Timer started';
+  } else if(cmd.includes('call')){
+    const who = cmd.replace(/call\s*/i,'');
+    response = `Calling ${who || 'contact'}...`;
+  } else if(cmd.includes('text') || cmd.includes('message')){
+    const who = cmd.replace(/(?:text|message)\s*/i,'');
+    response = `Opening message to ${who || 'contact'}`;
+  } else if(cmd.includes('weather')){
+    response = 'Checking weather for your area...';
+  } else if(cmd.includes('hello') || cmd.includes('hey') || cmd.includes('hi')){
+    response = "Hey! What can I do for you?";
+  } else {
+    response = `"${cmd}" — I'll handle that`;
+  }
+
+  setTimeout(() => {
+    voiceStatus.textContent = '';
+    voiceResponse.textContent = response;
+    if('speechSynthesis' in window){
+      const utter = new SpeechSynthesisUtterance(response);
+      utter.rate = 1.05; utter.pitch = 1;
+      speechSynthesis.speak(utter);
+    }
+    setTimeout(exitVoiceMode, 2500);
+  }, 500);
+}
+
+// ═══════════════════════════════════════════
+// TOUCH HANDLING
+// ═══════════════════════════════════════════
+let touchStart = 0;
+let holdTimer = null;
+let didHold = false;
+
+orbWrap.addEventListener('pointerdown', (e) => {
+  if(isVoiceMode){ exitVoiceMode(); return; }
+  touchStart = Date.now();
+  didHold = false;
+  orbWrap.classList.add('touched');
+  particleSpeedMult = 2;
+  holdTimer = setTimeout(() => {
+    didHold = true;
+    enterVoiceMode();
+  }, 500);
+});
+
+orbWrap.addEventListener('pointerup', (e) => {
+  clearTimeout(holdTimer);
+  orbWrap.classList.remove('touched');
+  if(!isVoiceMode) particleSpeedMult = 1;
+  const dt = Date.now() - touchStart;
+  if(!didHold && dt < 400 && !isVoiceMode){
+    if(menuOpen) closeMenu();
+    else openMenu();
+  }
+});
+
+orbWrap.addEventListener('pointerleave', () => {
+  clearTimeout(holdTimer);
+  orbWrap.classList.remove('touched');
+  if(!isVoiceMode) particleSpeedMult = 1;
+});
+
+document.addEventListener('pointerdown', (e) => {
+  if(menuOpen && !orbWrap.contains(e.target)) closeMenu();
+});
+
+// ═══════════════════════════════════════════
+// TIME-BASED THEMING
+// ═══════════════════════════════════════════
+(function applyTimeTheme(){
+  const h = new Date().getHours();
+  const root = document.documentElement;
+  if(h >= 6 && h < 12){
+    root.style.setProperty('--core','#FF8800');
+    document.querySelector('.orb').style.background =
+      'radial-gradient(ellipse at 35% 30%,rgba(255,200,50,.25),transparent 50%),radial-gradient(ellipse at 65% 70%,rgba(255,100,0,.3),transparent 50%),radial-gradient(circle at 50% 50%,#cc6600 0%,#662200 50%,#1a0500 100%)';
+  } else if(h >= 18 || h < 6){
+    root.style.setProperty('--core','#4400CC');
+  }
+})();
+</script>
+</body>
+</html>
