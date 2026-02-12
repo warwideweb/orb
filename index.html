@@ -3,157 +3,323 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#03060E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/orb-192.png">
-<title>ORB — AI Launcher</title>
+<title>ORB</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
 <style>
+@property --gradient-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+@property --color-1-x {
+  syntax: '<percentage>';
+  initial-value: 20%;
+  inherits: false;
+}
+@property --color-1-y {
+  syntax: '<percentage>';
+  initial-value: 30%;
+  inherits: false;
+}
+@property --color-2-x {
+  syntax: '<percentage>';
+  initial-value: 80%;
+  inherits: false;
+}
+@property --color-2-y {
+  syntax: '<percentage>';
+  initial-value: 70%;
+  inherits: false;
+}
+@property --color-3-x {
+  syntax: '<percentage>';
+  initial-value: 50%;
+  inherits: false;
+}
+@property --color-3-y {
+  syntax: '<percentage>';
+  initial-value: 50%;
+  inherits: false;
+}
+
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --core:#0066FF;--purple:#8B00FF;--cyan:#00FFFF;--pink:#FF006E;
-  --bg:#000;--text:rgba(255,255,255,.9);--dim:rgba(255,255,255,.35);
-  --orb-size:min(65vw, 65vh, 320px);
+  --sapphire:#0A1628;
+  --electric:#0066FF;
+  --violet:#7B2FFF;
+  --cyan:#00D4FF;
+  --soft:#E0EEFF;
+  --bg:#03060E;
+  --text:rgba(255,255,255,.9);
+  --dim:rgba(255,255,255,.25);
+  --ghost:rgba(255,255,255,.08);
+  --orb-size:min(68vw, 68vh, 340px);
 }
-html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none}
-body{display:flex;flex-direction:column;align-items:center;justify-content:center}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',system-ui,sans-serif;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none}
+
+/* ── ATMOSPHERIC BACKGROUND ── */
+body{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:
+    radial-gradient(ellipse 80% 80% at 50% 50%, rgba(0,102,255,0.03) 0%, transparent 70%),
+    radial-gradient(ellipse 100% 100% at 50% 100%, rgba(123,47,255,0.02) 0%, transparent 50%),
+    linear-gradient(180deg, #050A18 0%, #03060E 100%);
+}
+/* Noise texture overlay */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;opacity:0.025;z-index:1000;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+/* Ambient blobs */
+.ambient-bg{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+.ambient-blob{position:absolute;border-radius:50%;filter:blur(100px);opacity:0.04;animation:blobDrift 30s ease-in-out infinite}
+.ambient-blob:nth-child(1){width:60vw;height:60vw;background:var(--violet);top:-20%;left:-20%;animation-delay:0s}
+.ambient-blob:nth-child(2){width:50vw;height:50vw;background:var(--electric);bottom:-20%;right:-20%;animation-delay:-15s}
+@keyframes blobDrift{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(5vw,5vh) scale(1.1)}}
 
 /* ── STATUS BAR ── */
-.status{position:fixed;top:env(safe-area-inset-top,12px);left:0;right:0;display:flex;justify-content:space-between;padding:12px 24px;font-size:12px;font-weight:300;color:var(--dim);z-index:100;letter-spacing:.5px}
+.status{position:fixed;top:env(safe-area-inset-top,12px);left:0;right:0;display:flex;justify-content:flex-start;padding:14px 24px;font-size:11px;font-weight:300;color:var(--dim);opacity:0.25;z-index:100;letter-spacing:.5px}
 
 /* ── GREETING ── */
-.greeting{position:fixed;top:18%;left:0;right:0;text-align:center;font-size:clamp(18px,4vw,26px);font-weight:200;letter-spacing:1px;color:rgba(255,255,255,.5);opacity:0;animation:greetFade 3.5s ease forwards;pointer-events:none;z-index:5}
-@keyframes greetFade{0%{opacity:0;transform:translateY(10px)}15%{opacity:1;transform:translateY(0)}75%{opacity:1}100%{opacity:0}}
+.greeting{position:fixed;top:18%;left:0;right:0;text-align:center;font-size:clamp(16px,3.5vw,22px);font-weight:200;letter-spacing:2px;color:rgba(255,255,255,.35);opacity:0;animation:greetFade 4s ease forwards;pointer-events:none;z-index:5}
+@keyframes greetFade{0%{opacity:0;transform:translateY(8px)}12%{opacity:1;transform:translateY(0)}70%{opacity:1}100%{opacity:0}}
 
 /* ── ORB CONTAINER ── */
 .orb-wrap{position:relative;width:var(--orb-size);height:var(--orb-size);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10}
 
-/* ── AMBIENT GLOW (behind everything) ── */
-.ambient{position:absolute;width:160%;height:160%;border-radius:50%;background:radial-gradient(circle,rgba(0,102,255,.12) 0%,rgba(139,0,255,.06) 40%,transparent 70%);animation:ambientPulse 5s ease-in-out infinite;pointer-events:none;filter:blur(30px)}
-@keyframes ambientPulse{0%,100%{transform:scale(1);opacity:.6}50%{transform:scale(1.08);opacity:1}}
+/* ── DEPTH SHADOW (below orb) ── */
+.orb-shadow{position:absolute;bottom:-8%;left:10%;right:10%;height:20%;background:radial-gradient(ellipse at 50% 0%, rgba(0,0,0,0.4) 0%, transparent 70%);filter:blur(20px);pointer-events:none;z-index:0}
+
+/* ── AMBIENT GLOW (behind orb) ── */
+.orb-glow{position:absolute;width:140%;height:140%;border-radius:50%;background:radial-gradient(circle,rgba(0,102,255,.15) 0%,rgba(123,47,255,.08) 40%,transparent 70%);filter:blur(60px);animation:glowPulse 6s ease-in-out infinite;pointer-events:none;z-index:1;opacity:0.8}
+@keyframes glowPulse{0%,100%{opacity:0.6;transform:scale(0.95)}50%{opacity:0.9;transform:scale(1.02)}}
 
 /* ── ORB CORE ── */
-.orb{position:relative;width:100%;height:100%;border-radius:50%;background:radial-gradient(ellipse at 35% 30%,rgba(0,255,255,.25),transparent 50%),radial-gradient(ellipse at 65% 70%,rgba(139,0,255,.3),transparent 50%),radial-gradient(circle at 50% 50%,#0044cc 0%,#1a0066 50%,#000022 100%);box-shadow:0 0 60px 10px rgba(0,102,255,.25),0 0 120px 40px rgba(139,0,255,.1),inset 0 0 80px rgba(0,102,255,.15);animation:orbBreathe 4s ease-in-out infinite;transition:transform .4s cubic-bezier(.34,1.56,.64,1),box-shadow .4s ease;will-change:transform}
-@keyframes orbBreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.025)}}
+.orb{position:relative;width:100%;height:100%;border-radius:50%;overflow:hidden;z-index:2;animation:orbBreathe 5s ease-in-out infinite;transition:transform .5s cubic-bezier(.34,1.56,.64,1),filter .5s ease}
+@keyframes orbBreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.012)}}
 
-/* Glass highlight */
-.orb::before{content:'';position:absolute;top:8%;left:15%;width:55%;height:40%;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,.12) 0%,transparent 100%);pointer-events:none}
+/* Mesh gradient background (animated) */
+.orb-mesh{position:absolute;inset:-20%;width:140%;height:140%;background:
+  radial-gradient(ellipse at var(--color-1-x) var(--color-1-y), var(--cyan) 0%, transparent 50%),
+  radial-gradient(ellipse at var(--color-2-x) var(--color-2-y), var(--violet) 0%, transparent 50%),
+  radial-gradient(ellipse at var(--color-3-x) var(--color-3-y), var(--electric) 0%, transparent 50%),
+  radial-gradient(circle at 50% 50%, var(--sapphire) 0%, #000011 100%);
+animation:meshMorph 12s ease-in-out infinite;
+}
+@keyframes meshMorph{
+  0%{--color-1-x:25%;--color-1-y:20%;--color-2-x:75%;--color-2-y:80%;--color-3-x:50%;--color-3-y:60%}
+  33%{--color-1-x:70%;--color-1-y:30%;--color-2-x:30%;--color-2-y:70%;--color-3-x:60%;--color-3-y:40%}
+  66%{--color-1-x:40%;--color-1-y:75%;--color-2-x:60%;--color-2-y:25%;--color-3-x:35%;--color-3-y:55%}
+  100%{--color-1-x:25%;--color-1-y:20%;--color-2-x:75%;--color-2-y:80%;--color-3-x:50%;--color-3-y:60%}
+}
 
-/* Rotating gradient overlay */
-.orb::after{content:'';position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,transparent,rgba(0,255,255,.08),transparent,rgba(139,0,255,.08),transparent);animation:orbSpin 20s linear infinite;pointer-events:none}
-@keyframes orbSpin{to{transform:rotate(360deg)}}
+/* Specular highlight (glass reflection) */
+.orb-specular{position:absolute;top:6%;left:12%;width:50%;height:35%;border-radius:50%;background:linear-gradient(180deg,rgba(255,255,255,0.1) 0%,rgba(255,255,255,0.02) 60%,transparent 100%);transform:rotate(-15deg);pointer-events:none;animation:specularOrbit 25s linear infinite}
+@keyframes specularOrbit{0%{transform:rotate(-15deg)}100%{transform:rotate(-15deg)}}
+
+/* Rim light */
+.orb-rim{position:absolute;inset:0;border-radius:50%;border:1.5px solid transparent;background:linear-gradient(135deg,rgba(255,255,255,0.15) 0%,transparent 40%,transparent 60%,rgba(255,255,255,0.05) 100%) border-box;-webkit-mask:linear-gradient(#fff 0 0) padding-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+
+/* Inner edge glow */
+.orb::after{content:'';position:absolute;inset:0;border-radius:50%;box-shadow:inset 0 0 60px rgba(0,212,255,0.1),inset 0 0 120px rgba(123,47,255,0.05);pointer-events:none}
 
 /* ── PARTICLE CANVAS ── */
-#particles{position:absolute;inset:-25%;width:150%;height:150%;pointer-events:none;z-index:1}
+#particles{position:absolute;inset:-30%;width:160%;height:160%;pointer-events:none;z-index:3}
 
 /* ── WAVEFORM CANVAS (voice mode) ── */
-#waveform{position:absolute;inset:-15%;width:130%;height:130%;pointer-events:none;z-index:2;opacity:0;transition:opacity .5s ease}
+#waveform{position:absolute;inset:-20%;width:140%;height:140%;pointer-events:none;z-index:4;opacity:0;transition:opacity .4s ease}
 .voice-active #waveform{opacity:1}
 
+/* ── VOICE FLASH ── */
+.voice-flash{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,0.15) 0%,transparent 70%);opacity:0;pointer-events:none;z-index:5}
+
 /* ── TOUCH STATES ── */
-.orb-wrap.touched .orb{transform:scale(1.06);box-shadow:0 0 80px 20px rgba(0,102,255,.4),0 0 160px 60px rgba(139,0,255,.2),inset 0 0 100px rgba(0,102,255,.2)}
-.orb-wrap.voice-active .orb{transform:scale(1.12);box-shadow:0 0 100px 30px rgba(0,102,255,.5),0 0 200px 80px rgba(139,0,255,.25),inset 0 0 120px rgba(0,255,255,.15);animation:none}
+.orb-wrap.touched .orb{transform:scale(1.04)}
+.orb-wrap.touched .orb-glow{opacity:1;transform:scale(1.05)}
+.orb-wrap.voice-active .orb{transform:scale(1.08)}
+.orb-wrap.voice-active .orb-glow{opacity:1}
+
+/* ── MENU BACKDROP ── */
+.menu-backdrop{position:fixed;inset:0;background:radial-gradient(ellipse at 50% 50%,transparent 30%,rgba(0,0,0,0.3) 100%);opacity:0;pointer-events:none;transition:opacity .3s ease;z-index:8}
+.menu-open .menu-backdrop{opacity:1}
+.menu-open .orb{filter:brightness(0.6)}
+.menu-open .orb-glow{opacity:0.4}
 
 /* ── RADIAL MENU ── */
 .radial-menu{position:absolute;width:100%;height:100%;pointer-events:none;z-index:20}
-.app-icon{position:absolute;top:50%;left:50%;width:58px;height:58px;margin:-29px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:50%;background:rgba(255,255,255,.06);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);opacity:0;transform:scale(0) translate(0,0);transition:all .45s cubic-bezier(.34,1.56,.64,1);pointer-events:none;cursor:pointer;z-index:21}
+
+/* App icon - frosted glass style */
+.app-icon{
+  position:absolute;top:50%;left:50%;
+  width:58px;height:58px;margin:-29px;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:50%;
+  background:rgba(255,255,255,0.06);
+  backdrop-filter:blur(20px) saturate(1.5);
+  -webkit-backdrop-filter:blur(20px) saturate(1.5);
+  border:1px solid rgba(255,255,255,0.08);
+  box-shadow:0 4px 24px rgba(0,0,0,0.2),inset 0 0 0 1px rgba(255,255,255,0.03);
+  opacity:0;
+  transform:scale(0) translate(0,0);
+  transition:all .4s cubic-bezier(0.175,0.885,0.32,1.275);
+  pointer-events:none;
+  cursor:pointer;
+  z-index:21;
+}
 .app-icon.visible{opacity:1;transform:scale(1) translate(var(--tx),var(--ty));pointer-events:auto}
-.app-icon:active{transform:scale(.9) translate(var(--tx),var(--ty))!important;background:rgba(0,102,255,.3)}
-.app-icon .emoji{font-size:22px;line-height:1}
-.app-label{position:absolute;bottom:-20px;font-size:9px;font-weight:300;color:var(--dim);white-space:nowrap;letter-spacing:.3px}
-.app-icon .fav{position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 6px rgba(0,255,255,.6)}
+.app-icon:active{transform:scale(0.92) translate(var(--tx),var(--ty))!important;background:rgba(0,102,255,0.15)}
+.app-icon svg{width:24px;height:24px;stroke:rgba(255,255,255,0.7);stroke-width:1.5;fill:none}
+.app-icon.top-app{border-color:rgba(0,200,255,0.2);box-shadow:0 4px 24px rgba(0,0,0,0.2),0 0 20px rgba(0,200,255,0.1),inset 0 0 0 1px rgba(255,255,255,0.03)}
+
+/* App labels */
+.app-label{
+  position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);
+  font-size:10px;font-weight:300;letter-spacing:0.3px;
+  color:rgba(255,255,255,0.4);
+  white-space:nowrap;
+}
 
 /* ── VOICE UI ── */
-.voice-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);opacity:0;pointer-events:none;transition:opacity .4s ease;z-index:5}
+.voice-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .4s ease;z-index:5}
 .voice-active~.voice-overlay{opacity:1}
-.voice-text{position:fixed;bottom:22%;left:0;right:0;text-align:center;z-index:30;pointer-events:none}
-.voice-status{font-size:14px;font-weight:300;color:rgba(0,255,255,.7);letter-spacing:2px;text-transform:uppercase;opacity:0;transition:opacity .3s;margin-bottom:12px}
+
+.voice-text{position:fixed;bottom:20%;left:0;right:0;text-align:center;z-index:30;pointer-events:none}
+.voice-status{font-size:12px;font-weight:200;color:rgba(0,212,255,.6);letter-spacing:4px;text-transform:uppercase;opacity:0;transition:opacity .3s;margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:8px}
 .voice-active~.voice-text .voice-status{opacity:1}
-.voice-transcript{font-size:clamp(16px,4vw,22px);font-weight:200;color:var(--text);min-height:30px;padding:0 30px;line-height:1.5;opacity:0;transition:opacity .3s}
+.listening-dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.8)}}
+
+.voice-transcript{font-size:clamp(18px,4.5vw,24px);font-weight:300;color:var(--text);min-height:32px;padding:0 32px;line-height:1.5;opacity:0;transition:opacity .3s}
 .voice-active~.voice-text .voice-transcript{opacity:1}
-.voice-response{font-size:clamp(14px,3.5vw,18px);font-weight:300;color:rgba(255,255,255,.6);min-height:24px;padding:0 30px;margin-top:10px;opacity:0;transition:opacity .3s}
+.voice-response{font-size:clamp(14px,3.5vw,17px);font-weight:300;color:rgba(255,255,255,.55);min-height:24px;padding:0 32px;margin-top:12px;opacity:0;transition:opacity .3s}
 .voice-active~.voice-text .voice-response{opacity:1}
 
-/* ── LISTENING INDICATOR ── */
-.listening-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--cyan);margin-left:6px;animation:blink 1s ease-in-out infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
-
-/* ── SIMULATED APP LAUNCH ── */
-.launch-flash{position:fixed;inset:0;background:rgba(0,102,255,.15);opacity:0;pointer-events:none;z-index:100;transition:opacity .15s}
+/* ── APP LAUNCH FLASH ── */
+.launch-flash{position:fixed;inset:0;background:rgba(0,102,255,.1);opacity:0;pointer-events:none;z-index:100;transition:opacity .12s}
 .launch-flash.active{opacity:1}
 
 /* ── INSTALL BANNER ── */
-.install-banner{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(180deg,transparent,rgba(0,20,60,.95));padding:30px 24px calc(env(safe-area-inset-bottom,20px) + 20px);z-index:200;transform:translateY(100%);transition:transform .4s ease;text-align:center}
-.install-banner.visible{transform:translateY(0)}
-.install-banner h3{font-size:16px;font-weight:400;letter-spacing:1px;margin-bottom:8px}
-.install-banner p{font-size:12px;color:var(--dim);margin-bottom:16px}
-.install-btn{background:var(--core);color:#fff;border:none;padding:12px 32px;border-radius:30px;font-size:14px;font-weight:500;letter-spacing:1px;cursor:pointer;transition:all .2s}
-.install-btn:active{transform:scale(.95)}
-.install-dismiss{background:none;border:none;color:var(--dim);font-size:12px;margin-top:12px;cursor:pointer;padding:8px}
+.install-banner{
+  position:fixed;bottom:0;left:16px;right:16px;
+  background:rgba(255,255,255,0.05);
+  backdrop-filter:blur(30px) saturate(1.5);
+  -webkit-backdrop-filter:blur(30px) saturate(1.5);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:16px;
+  padding:20px 24px calc(env(safe-area-inset-bottom,16px) + 16px);
+  z-index:200;
+  transform:translateY(120%);
+  transition:transform .4s cubic-bezier(.34,1.56,.64,1);
+  text-align:center;
+}
+.install-banner.visible{transform:translateY(-16px)}
+.install-banner h3{font-size:15px;font-weight:400;letter-spacing:1px;margin-bottom:6px}
+.install-banner p{font-size:11px;color:var(--dim);margin-bottom:16px;font-weight:300}
+.install-btn{
+  background:rgba(0,102,255,0.2);
+  color:#fff;border:1px solid rgba(0,102,255,0.3);
+  padding:10px 28px;border-radius:24px;
+  font-size:13px;font-weight:400;letter-spacing:0.5px;
+  cursor:pointer;transition:all .2s;
+}
+.install-btn:active{transform:scale(.96);background:rgba(0,102,255,0.3)}
+.install-dismiss{background:none;border:none;color:var(--dim);font-size:11px;margin-top:12px;cursor:pointer;padding:8px;font-weight:300}
 
-/* ── INSTRUCTION HINT ── */
-.hint{position:fixed;bottom:max(env(safe-area-inset-bottom,20px),20px);left:0;right:0;text-align:center;font-size:11px;font-weight:300;color:var(--dim);letter-spacing:.8px;z-index:50;padding:0 20px}
-.hint span{display:block;margin-top:4px}
+/* ── BOTTOM HINT ── */
+.hint{
+  position:fixed;bottom:max(env(safe-area-inset-bottom,20px),20px);
+  left:0;right:0;text-align:center;
+  font-size:10px;font-weight:300;color:rgba(255,255,255,0.15);
+  letter-spacing:1px;z-index:50;padding:0 20px;
+  transition:opacity .5s;
+}
+.hint.hidden{opacity:0;pointer-events:none}
 
-/* ── BRANDING ── */
-.brand{position:fixed;bottom:calc(max(env(safe-area-inset-bottom,20px),20px) + 50px);left:0;right:0;text-align:center;font-size:10px;font-weight:400;letter-spacing:6px;text-transform:uppercase;color:rgba(255,255,255,.15);z-index:50}
+/* ── BRAND MARK ── */
+.brand{
+  position:fixed;
+  bottom:calc(max(env(safe-area-inset-bottom,20px),20px) + 40px);
+  left:0;right:0;text-align:center;
+  font-size:10px;font-weight:300;letter-spacing:8px;
+  text-transform:uppercase;color:rgba(255,255,255,.08);
+  z-index:50;
+}
 </style>
 </head>
 <body>
 
-<div class="status">
-  <span id="clock"></span>
-  <span>ORB</span>
+<div class="ambient-bg">
+  <div class="ambient-blob"></div>
+  <div class="ambient-blob"></div>
 </div>
 
+<div class="status"><span id="clock"></span></div>
 <div class="greeting" id="greeting"></div>
+<div class="menu-backdrop"></div>
 
 <div class="orb-wrap" id="orbWrap">
-  <div class="ambient"></div>
+  <div class="orb-shadow"></div>
+  <div class="orb-glow"></div>
   <canvas id="particles"></canvas>
   <canvas id="waveform"></canvas>
-  <div class="orb" id="orb"></div>
+  <div class="orb" id="orb">
+    <div class="orb-mesh"></div>
+    <div class="orb-specular"></div>
+    <div class="orb-rim"></div>
+  </div>
+  <div class="voice-flash" id="voiceFlash"></div>
   <div class="radial-menu" id="radialMenu"></div>
 </div>
 
 <div class="voice-overlay"></div>
 <div class="voice-text">
-  <div class="voice-status" id="voiceStatus">Listening<span class="listening-dot"></span></div>
+  <div class="voice-status" id="voiceStatus"><span>Listening</span><span class="listening-dot"></span></div>
   <div class="voice-transcript" id="voiceTranscript"></div>
   <div class="voice-response" id="voiceResponse"></div>
 </div>
 
 <div class="launch-flash" id="launchFlash"></div>
 
-<!-- Install Banner -->
 <div class="install-banner" id="installBanner">
   <h3>Install ORB</h3>
-  <p>Add to your home screen for the full experience</p>
-  <button class="install-btn" id="installBtn">Install App</button>
+  <p>Add to home screen for the full experience</p>
+  <button class="install-btn" id="installBtn">Install</button>
   <button class="install-dismiss" id="installDismiss">Not now</button>
 </div>
 
 <div class="brand">O R B</div>
-<div class="hint">
-  <span>tap → apps &nbsp;·&nbsp; hold → voice</span>
-</div>
+<div class="hint" id="hint">tap · apps &nbsp;&nbsp; hold · voice</div>
 
 <script>
 // ═══════════════════════════════════════════
-// CONFIG
+// SVG ICONS (SF Symbols style)
 // ═══════════════════════════════════════════
+const ICONS = {
+  Phone: `<svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>`,
+  Messages: `<svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>`,
+  Camera: `<svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>`,
+  Music: `<svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`,
+  Mail: `<svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>`,
+  Map: `<svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>`,
+  Instagram: `<svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>`,
+  Twitter: `<svg viewBox="0 0 24 24"><path d="M4 4l11.5 16h4.5l-11.5-16z"/><path d="M4 20l6.5-6.5"/><path d="M20 4l-6.5 6.5"/></svg>`
+};
+
 const APPS = [
-  { emoji:'📱', name:'Phone', count:0 },
-  { emoji:'💬', name:'Messages', count:0 },
-  { emoji:'📷', name:'Camera', count:0 },
-  { emoji:'🎵', name:'Spotify', count:0 },
-  { emoji:'📧', name:'Gmail', count:0 },
-  { emoji:'🗺️', name:'Maps', count:0 },
-  { emoji:'📸', name:'Instagram', count:0 },
-  { emoji:'🐦', name:'X', count:0 },
+  { icon:'Phone', name:'Phone', count:0 },
+  { icon:'Messages', name:'Messages', count:0 },
+  { icon:'Camera', name:'Camera', count:0 },
+  { icon:'Music', name:'Spotify', count:0 },
+  { icon:'Mail', name:'Gmail', count:0 },
+  { icon:'Map', name:'Maps', count:0 },
+  { icon:'Instagram', name:'Instagram', count:0 },
+  { icon:'Twitter', name:'X', count:0 },
 ];
 
 // Load saved counts
@@ -168,32 +334,26 @@ function saveCounts(){
 }
 
 // ═══════════════════════════════════════════
-// PWA INSTALL PROMPT
+// PWA INSTALL
 // ═══════════════════════════════════════════
 let deferredPrompt;
 const installBanner = document.getElementById('installBanner');
 const installBtn = document.getElementById('installBtn');
 const installDismiss = document.getElementById('installDismiss');
-
-// Check if already installed or dismissed
 const isInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 const wasDismissed = localStorage.getItem('orb_install_dismissed');
 
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  if(!isInstalled && !wasDismissed){
-    setTimeout(() => installBanner.classList.add('visible'), 2000);
-  }
+  if(!isInstalled && !wasDismissed) setTimeout(() => installBanner.classList.add('visible'), 3000);
 });
 
 installBtn.addEventListener('click', async () => {
   if(deferredPrompt){
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    if(outcome === 'accepted'){
-      installBanner.classList.remove('visible');
-    }
+    if(outcome === 'accepted') installBanner.classList.remove('visible');
     deferredPrompt = null;
   }
 });
@@ -203,11 +363,8 @@ installDismiss.addEventListener('click', () => {
   localStorage.setItem('orb_install_dismissed', 'true');
 });
 
-// ═══════════════════════════════════════════
-// SERVICE WORKER REGISTRATION
-// ═══════════════════════════════════════════
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('sw.js').catch(e => console.log('SW registration failed'));
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
 }
 
 // ═══════════════════════════════════════════
@@ -217,19 +374,17 @@ const clockEl = document.getElementById('clock');
 const greetEl = document.getElementById('greeting');
 
 function updateClock(){
-  const d = new Date();
-  clockEl.textContent = d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:true});
+  clockEl.textContent = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:true});
 }
 updateClock(); setInterval(updateClock, 10000);
 
 (function setGreeting(){
   const h = new Date().getHours();
-  const g = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
-  greetEl.textContent = g;
+  greetEl.textContent = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
 })();
 
 // ═══════════════════════════════════════════
-// PARTICLE SYSTEM
+// PARTICLE SYSTEM (premium motes)
 // ═══════════════════════════════════════════
 const pCanvas = document.getElementById('particles');
 const pCtx = pCanvas.getContext('2d');
@@ -238,7 +393,7 @@ let pW, pH;
 
 function resizeParticles(){
   const r = pCanvas.parentElement.getBoundingClientRect();
-  const dpr = window.devicePixelRatio || 1;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
   pW = r.width; pH = r.height;
   pCanvas.width = pW * dpr; pCanvas.height = pH * dpr;
   pCanvas.style.width = pW + 'px'; pCanvas.style.height = pH + 'px';
@@ -247,39 +402,60 @@ function resizeParticles(){
 resizeParticles();
 window.addEventListener('resize', resizeParticles);
 
-const NUM_PARTICLES = 40;
+const NUM_PARTICLES = 24;
 for(let i = 0; i < NUM_PARTICLES; i++){
-  const angle = Math.random() * Math.PI * 2;
-  const radius = 0.38 + Math.random() * 0.12;
   particles.push({
-    angle, radius,
-    speed: 0.002 + Math.random() * 0.004,
-    size: 1 + Math.random() * 2,
-    alpha: 0.2 + Math.random() * 0.5,
-    hue: Math.random() > 0.5 ? 200 : 270
+    angle: Math.random() * Math.PI * 2,
+    radius: 0.36 + Math.random() * 0.14,
+    speed: 0.001 + Math.random() * 0.002,
+    size: 0.8 + Math.random() * 2,
+    alpha: 0.15 + Math.random() * 0.35,
+    hue: Math.random() > 0.7 ? 270 : 190,
+    wobble: Math.random() * Math.PI * 2,
+    wobbleSpeed: 0.01 + Math.random() * 0.02,
+    trail: []
   });
 }
 
 let particleSpeedMult = 1;
 let isVoiceMode = false;
+let particlesVisible = true;
 
-function drawParticles(){
+function drawParticles(time){
   pCtx.clearRect(0, 0, pW, pH);
-  if(isVoiceMode) return;
+  if(isVoiceMode || !particlesVisible) return;
+  
   const cx = pW / 2, cy = pH / 2;
-  const baseR = pW * 0.33;
+  const baseR = pW * 0.30;
+  
   particles.forEach(p => {
     p.angle += p.speed * particleSpeedMult;
-    const r = baseR * p.radius;
+    p.wobble += p.wobbleSpeed;
+    
+    const wobbleOffset = Math.sin(p.wobble) * 0.02;
+    const r = baseR * (p.radius + wobbleOffset);
     const x = cx + Math.cos(p.angle) * r;
     const y = cy + Math.sin(p.angle) * r;
+    
+    // Trail (motion blur)
+    p.trail.push({x, y, alpha: p.alpha});
+    if(p.trail.length > 5) p.trail.shift();
+    
+    p.trail.forEach((t, i) => {
+      const ta = t.alpha * (i / p.trail.length) * 0.3;
+      pCtx.beginPath();
+      pCtx.arc(t.x, t.y, p.size * 0.8, 0, Math.PI * 2);
+      pCtx.fillStyle = `hsla(${p.hue},80%,75%,${ta})`;
+      pCtx.fill();
+    });
+    
+    // Main particle
     pCtx.beginPath();
     pCtx.arc(x, y, p.size, 0, Math.PI * 2);
-    pCtx.fillStyle = `hsla(${p.hue},100%,70%,${p.alpha * 0.6})`;
-    pCtx.fill();
-    pCtx.beginPath();
-    pCtx.arc(x, y, p.size * 3, 0, Math.PI * 2);
-    pCtx.fillStyle = `hsla(${p.hue},100%,70%,${p.alpha * 0.1})`;
+    const grad = pCtx.createRadialGradient(x, y, 0, x, y, p.size * 2);
+    grad.addColorStop(0, `hsla(${p.hue},80%,80%,${p.alpha})`);
+    grad.addColorStop(1, `hsla(${p.hue},80%,70%,0)`);
+    pCtx.fillStyle = grad;
     pCtx.fill();
   });
 }
@@ -293,8 +469,8 @@ let wW, wH;
 
 function resizeWave(){
   const r = wCanvas.parentElement.getBoundingClientRect();
-  const dpr = window.devicePixelRatio || 1;
-  wW = r.width * 1.3; wH = r.height * 1.3;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  wW = r.width * 1.4; wH = r.height * 1.4;
   wCanvas.width = wW * dpr; wCanvas.height = wH * dpr;
   wCanvas.style.width = wW + 'px'; wCanvas.style.height = wH + 'px';
   wCtx.setTransform(dpr,0,0,dpr,0,0);
@@ -308,31 +484,40 @@ let targetAudioLevel = 0;
 function drawWaveform(time){
   wCtx.clearRect(0, 0, wW, wH);
   if(!isVoiceMode) return;
-  audioLevel += (targetAudioLevel - audioLevel) * 0.1;
+  
+  audioLevel += (targetAudioLevel - audioLevel) * 0.18;
   const cx = wW / 2, cy = wH / 2;
-  const baseR = wW * 0.27;
-  const bars = 64;
+  const baseR = wW * 0.25;
+  const bars = 72;
+  
   for(let i = 0; i < bars; i++){
     const angle = (i / bars) * Math.PI * 2 - Math.PI / 2;
-    const noise = Math.sin(time * 0.003 + i * 0.5) * 0.3 + Math.sin(time * 0.005 + i * 0.8) * 0.2;
-    const amp = (0.08 + audioLevel * 0.4 + noise * 0.15) * baseR;
-    const r1 = baseR - amp * 0.3;
+    const noise = Math.sin(time * 0.002 + i * 0.4) * 0.25 + Math.sin(time * 0.004 + i * 0.7) * 0.15;
+    const amp = (0.06 + audioLevel * 0.35 + noise * 0.12) * baseR;
+    const r1 = baseR - amp * 0.25;
     const r2 = baseR + amp;
+    
     const x1 = cx + Math.cos(angle) * r1;
     const y1 = cy + Math.sin(angle) * r1;
     const x2 = cx + Math.cos(angle) * r2;
     const y2 = cy + Math.sin(angle) * r2;
-    const gradient = wCtx.createLinearGradient(x1, y1, x2, y2);
-    const hue = 190 + (i / bars) * 80;
-    gradient.addColorStop(0, `hsla(${hue},100%,60%,0)`);
-    gradient.addColorStop(0.5, `hsla(${hue},100%,65%,${0.4 + audioLevel * 0.4})`);
-    gradient.addColorStop(1, `hsla(${hue},100%,70%,0)`);
+    
+    // Glow layer
     wCtx.beginPath();
     wCtx.moveTo(x1, y1);
     wCtx.lineTo(x2, y2);
-    wCtx.strokeStyle = gradient;
-    wCtx.lineWidth = 2.5;
+    const hue = 190 + (i / bars) * 80;
+    wCtx.strokeStyle = `hsla(${hue},100%,65%,${0.15 + audioLevel * 0.15})`;
+    wCtx.lineWidth = 6;
     wCtx.lineCap = 'round';
+    wCtx.stroke();
+    
+    // Main bar
+    wCtx.beginPath();
+    wCtx.moveTo(x1, y1);
+    wCtx.lineTo(x2, y2);
+    wCtx.strokeStyle = `hsla(${hue},100%,70%,${0.5 + audioLevel * 0.4})`;
+    wCtx.lineWidth = 2;
     wCtx.stroke();
   }
 }
@@ -340,8 +525,9 @@ function drawWaveform(time){
 // ═══════════════════════════════════════════
 // ANIMATION LOOP
 // ═══════════════════════════════════════════
+let lastTime = 0;
 function animate(time){
-  drawParticles();
+  drawParticles(time);
   drawWaveform(time);
   requestAnimationFrame(animate);
 }
@@ -360,23 +546,26 @@ function haptic(pattern){
 const orbWrap = document.getElementById('orbWrap');
 const radialMenu = document.getElementById('radialMenu');
 const launchFlash = document.getElementById('launchFlash');
+const hint = document.getElementById('hint');
 let menuOpen = false;
 
 function buildMenu(){
   radialMenu.innerHTML = '';
   const sorted = [...APPS].sort((a,b) => b.count - a.count);
-  const radius = orbWrap.offsetWidth * 0.65;
+  const radius = orbWrap.offsetWidth * 0.72;
+  
   sorted.forEach((app, i) => {
     const angle = (i / sorted.length) * Math.PI * 2 - Math.PI / 2;
     const tx = Math.cos(angle) * radius;
     const ty = Math.sin(angle) * radius;
+    
     const el = document.createElement('div');
-    el.className = 'app-icon';
+    el.className = 'app-icon' + (i === 0 && app.count > 0 ? ' top-app' : '');
     el.style.setProperty('--tx', tx + 'px');
     el.style.setProperty('--ty', ty + 'px');
-    el.style.transitionDelay = (i * 35) + 'ms';
-    el.innerHTML = `<span class="emoji">${app.emoji}</span><span class="app-label">${app.name}</span>`;
-    if(i === 0 && app.count > 0) el.innerHTML += '<span class="fav"></span>';
+    el.style.transitionDelay = (i * 30) + 'ms';
+    el.innerHTML = ICONS[app.icon] + `<span class="app-label">${app.name}</span>`;
+    
     el.addEventListener('click', (e) => {
       e.stopPropagation();
       haptic(25);
@@ -393,7 +582,8 @@ function openMenu(){
   if(menuOpen || isVoiceMode) return;
   menuOpen = true;
   haptic(15);
-  particleSpeedMult = 0.3;
+  document.body.classList.add('menu-open');
+  hideHint();
   buildMenu();
   requestAnimationFrame(() => {
     radialMenu.querySelectorAll('.app-icon').forEach(el => el.classList.add('visible'));
@@ -403,9 +593,10 @@ function openMenu(){
 function closeMenu(){
   if(!menuOpen) return;
   menuOpen = false;
-  particleSpeedMult = 1;
-  radialMenu.querySelectorAll('.app-icon').forEach((el, i) => {
-    el.style.transitionDelay = (i * 20) + 'ms';
+  document.body.classList.remove('menu-open');
+  const icons = radialMenu.querySelectorAll('.app-icon');
+  icons.forEach((el, i) => {
+    el.style.transitionDelay = ((icons.length - 1 - i) * 20) + 'ms';
     el.classList.remove('visible');
   });
 }
@@ -413,11 +604,21 @@ function closeMenu(){
 function launchApp(name){
   closeMenu();
   launchFlash.classList.add('active');
-  document.getElementById('voiceResponse').textContent = `Opening ${name}...`;
-  document.getElementById('voiceResponse').style.opacity = '1';
-  setTimeout(() => launchFlash.classList.remove('active'), 200);
-  setTimeout(() => document.getElementById('voiceResponse').style.opacity = '0', 1800);
+  voiceResponse.textContent = `Opening ${name}`;
+  voiceResponse.style.opacity = '1';
+  setTimeout(() => launchFlash.classList.remove('active'), 150);
+  setTimeout(() => voiceResponse.style.opacity = '0', 1500);
 }
+
+function hideHint(){
+  if(!localStorage.getItem('orb_hint_hidden')){
+    hint.classList.add('hidden');
+    localStorage.setItem('orb_hint_hidden', 'true');
+  }
+}
+
+// Check if hint should be hidden
+if(localStorage.getItem('orb_hint_hidden')) hint.classList.add('hidden');
 
 // ═══════════════════════════════════════════
 // VOICE MODE
@@ -425,6 +626,7 @@ function launchApp(name){
 const voiceStatus = document.getElementById('voiceStatus');
 const voiceTranscript = document.getElementById('voiceTranscript');
 const voiceResponse = document.getElementById('voiceResponse');
+const voiceFlash = document.getElementById('voiceFlash');
 let recognition = null;
 let recognizing = false;
 
@@ -433,10 +635,28 @@ function enterVoiceMode(){
   isVoiceMode = true;
   closeMenu();
   haptic([10,30,20,30,40]);
+  hideHint();
+  
+  // Flash effect
+  voiceFlash.style.transition = 'opacity 0.1s';
+  voiceFlash.style.opacity = '1';
+  setTimeout(() => {
+    voiceFlash.style.transition = 'opacity 0.3s';
+    voiceFlash.style.opacity = '0';
+  }, 100);
+  
+  // Particles spiral inward then hide
+  particleSpeedMult = 3;
+  setTimeout(() => {
+    particlesVisible = false;
+    particleSpeedMult = 1;
+  }, 200);
+  
   orbWrap.classList.add('voice-active');
   voiceTranscript.textContent = '';
   voiceResponse.textContent = '';
-  voiceStatus.innerHTML = 'Listening<span class="listening-dot"></span>';
+  voiceStatus.querySelector('span').textContent = 'Listening';
+  
   simulateAudio();
   startRecognition();
 }
@@ -445,6 +665,12 @@ function exitVoiceMode(){
   isVoiceMode = false;
   orbWrap.classList.remove('voice-active');
   targetAudioLevel = 0;
+  
+  // Particles re-emerge
+  setTimeout(() => {
+    particlesVisible = true;
+  }, 100);
+  
   if(recognition && recognizing){
     recognizing = false;
     try { recognition.stop(); } catch(e){}
@@ -456,15 +682,15 @@ function simulateAudio(){
   clearInterval(audioSim);
   audioSim = setInterval(() => {
     if(!isVoiceMode){ clearInterval(audioSim); return; }
-    targetAudioLevel = 0.05 + Math.random() * 0.1;
-  }, 150);
+    targetAudioLevel = 0.03 + Math.random() * 0.08;
+  }, 120);
 }
 
 function startRecognition(){
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if(!SR){
-    voiceStatus.textContent = 'Voice not supported — try Chrome';
-    setTimeout(exitVoiceMode, 2500);
+    voiceStatus.querySelector('span').textContent = 'Voice not supported';
+    setTimeout(exitVoiceMode, 2000);
     return;
   }
   recognition = new SR();
@@ -485,7 +711,7 @@ function startRecognition(){
   };
   recognition.onerror = (e) => {
     if(e.error === 'not-allowed'){
-      voiceStatus.textContent = 'Mic access needed';
+      voiceStatus.querySelector('span').textContent = 'Mic access needed';
       setTimeout(exitVoiceMode, 2000);
     }
   };
@@ -499,9 +725,22 @@ function startRecognition(){
   try { recognition.start(); } catch(e){}
 }
 
+function typeResponse(text, el){
+  el.textContent = '';
+  let i = 0;
+  const interval = setInterval(() => {
+    if(i < text.length){
+      el.textContent += text[i];
+      i++;
+    } else {
+      clearInterval(interval);
+    }
+  }, 28);
+}
+
 function processCommand(cmd){
   haptic([20,50,20]);
-  voiceStatus.textContent = 'Processing...';
+  voiceStatus.querySelector('span').textContent = 'Processing';
   targetAudioLevel = 0;
 
   let response = '';
@@ -515,42 +754,33 @@ function processCommand(cmd){
       saveCounts();
       setTimeout(() => {
         launchFlash.classList.add('active');
-        setTimeout(() => launchFlash.classList.remove('active'), 200);
-      }, 600);
-    } else if(target.includes('photo') || target.includes('picture')){
-      response = `Searching photos for "${target}"...`;
+        setTimeout(() => launchFlash.classList.remove('active'), 150);
+      }, 500);
     } else {
-      response = `I found "${target}" — launching now`;
+      response = `Launching ${target}`;
     }
   } else if(cmd.includes('time') || cmd.includes('what time')){
-    const t = new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
-    response = `It's ${t}`;
-  } else if(cmd.includes('timer') || cmd.includes('minute')){
-    response = 'Timer started';
+    response = `It's ${new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}`;
   } else if(cmd.includes('call')){
-    const who = cmd.replace(/call\s*/i,'');
-    response = `Calling ${who || 'contact'}...`;
+    response = `Calling ${cmd.replace(/call\s*/i,'') || 'contact'}`;
   } else if(cmd.includes('text') || cmd.includes('message')){
-    const who = cmd.replace(/(?:text|message)\s*/i,'');
-    response = `Opening message to ${who || 'contact'}`;
-  } else if(cmd.includes('weather')){
-    response = 'Checking weather for your area...';
+    response = `Opening message to ${cmd.replace(/(?:text|message)\s*/i,'') || 'contact'}`;
   } else if(cmd.includes('hello') || cmd.includes('hey') || cmd.includes('hi')){
-    response = "Hey! What can I do for you?";
+    response = "Hey there";
   } else {
-    response = `"${cmd}" — I'll handle that`;
+    response = `Got it`;
   }
 
   setTimeout(() => {
-    voiceStatus.textContent = '';
-    voiceResponse.textContent = response;
+    voiceStatus.querySelector('span').textContent = '';
+    typeResponse(response, voiceResponse);
     if('speechSynthesis' in window){
       const utter = new SpeechSynthesisUtterance(response);
       utter.rate = 1.05; utter.pitch = 1;
       speechSynthesis.speak(utter);
     }
-    setTimeout(exitVoiceMode, 2500);
-  }, 500);
+    setTimeout(exitVoiceMode, 2200);
+  }, 400);
 }
 
 // ═══════════════════════════════════════════
@@ -565,7 +795,6 @@ orbWrap.addEventListener('pointerdown', (e) => {
   touchStart = Date.now();
   didHold = false;
   orbWrap.classList.add('touched');
-  particleSpeedMult = 2;
   holdTimer = setTimeout(() => {
     didHold = true;
     enterVoiceMode();
@@ -575,7 +804,6 @@ orbWrap.addEventListener('pointerdown', (e) => {
 orbWrap.addEventListener('pointerup', (e) => {
   clearTimeout(holdTimer);
   orbWrap.classList.remove('touched');
-  if(!isVoiceMode) particleSpeedMult = 1;
   const dt = Date.now() - touchStart;
   if(!didHold && dt < 400 && !isVoiceMode){
     if(menuOpen) closeMenu();
@@ -586,7 +814,6 @@ orbWrap.addEventListener('pointerup', (e) => {
 orbWrap.addEventListener('pointerleave', () => {
   clearTimeout(holdTimer);
   orbWrap.classList.remove('touched');
-  if(!isVoiceMode) particleSpeedMult = 1;
 });
 
 document.addEventListener('pointerdown', (e) => {
@@ -594,17 +821,27 @@ document.addEventListener('pointerdown', (e) => {
 });
 
 // ═══════════════════════════════════════════
-// TIME-BASED THEMING
+// TIME-BASED THEMING (subtle, always blue family)
 // ═══════════════════════════════════════════
 (function applyTimeTheme(){
   const h = new Date().getHours();
   const root = document.documentElement;
+  const mesh = document.querySelector('.orb-mesh');
+  const glow = document.querySelector('.orb-glow');
+  
   if(h >= 6 && h < 12){
-    root.style.setProperty('--core','#FF8800');
-    document.querySelector('.orb').style.background =
-      'radial-gradient(ellipse at 35% 30%,rgba(255,200,50,.25),transparent 50%),radial-gradient(ellipse at 65% 70%,rgba(255,100,0,.3),transparent 50%),radial-gradient(circle at 50% 50%,#cc6600 0%,#662200 50%,#1a0500 100%)';
-  } else if(h >= 18 || h < 6){
-    root.style.setProperty('--core','#4400CC');
+    // Morning: brighter cyan
+    root.style.setProperty('--cyan','#00E5FF');
+    glow.style.background = 'radial-gradient(circle,rgba(0,229,255,.18) 0%,rgba(123,47,255,.08) 40%,transparent 70%)';
+  } else if(h >= 18 && h < 22){
+    // Evening: more violet
+    root.style.setProperty('--electric','#5533FF');
+    root.style.setProperty('--violet','#9B3FFF');
+  } else if(h >= 22 || h < 6){
+    // Night: deep sapphire, minimal glow
+    root.style.setProperty('--electric','#0044AA');
+    root.style.setProperty('--cyan','#0088CC');
+    glow.style.opacity = '0.5';
   }
 })();
 </script>
