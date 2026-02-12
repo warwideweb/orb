@@ -13,414 +13,333 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --cyan:#00D4FF;--blue:#0066FF;--violet:#7B2FFF;
-  --bg:#060B18;--text:rgba(255,255,255,.9);--dim:rgba(255,255,255,.25);
-  --glass:rgba(255,255,255,0.06);--glass-border:rgba(255,255,255,0.08);
-}
-html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',system-ui,sans-serif;-webkit-tap-highlight-color:transparent;touch-action:none;user-select:none}
+:root{--cyan:#00D4FF;--blue:#0066FF;--violet:#7B2FFF;--bg:#060B18}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:#fff;font-family:'Plus Jakarta Sans',system-ui,sans-serif;-webkit-tap-highlight-color:transparent;touch-action:none;user-select:none}
 
-/* ═══ SIMULATED ANDROID HOME ═══ */
-.sim-home{position:fixed;inset:0;z-index:1;display:flex;flex-direction:column}
-.sim-home.hidden{display:none}
+/* ═══ SIMULATED HOME ═══ */
+.home{position:fixed;inset:0;z-index:1;display:flex;flex-direction:column;transition:filter .3s,opacity .3s}
+.home.blurred{filter:blur(4px) brightness(0.7)}
+.home.hidden{opacity:0;pointer-events:none}
 
-/* Wallpaper */
 .wallpaper{position:absolute;inset:0;background:
-  radial-gradient(ellipse 80% 60% at 20% 20%,rgba(80,30,120,0.25) 0%,transparent 60%),
-  radial-gradient(ellipse 70% 50% at 80% 70%,rgba(20,60,100,0.2) 0%,transparent 60%),
-  radial-gradient(ellipse 100% 100% at 50% 100%,rgba(10,30,60,0.3) 0%,transparent 50%),
-  linear-gradient(180deg,#060B18 0%,#0a1020 50%,#060B18 100%);z-index:0}
-.wallpaper::before{content:'';position:absolute;inset:0;opacity:0.03;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+  radial-gradient(ellipse 70% 50% at 75% 20%,rgba(30,50,120,0.3),transparent 60%),
+  radial-gradient(ellipse 60% 45% at 20% 80%,rgba(60,20,100,0.25),transparent 55%),
+  radial-gradient(circle at 50% 45%,rgba(20,40,80,0.2),transparent 50%),
+  linear-gradient(180deg,#060B18,#0a1225,#060B18);z-index:0}
+.wallpaper::after{content:'';position:absolute;inset:0;opacity:.03;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 
-/* Status bar */
-.sim-statusbar{height:32px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-size:13px;font-weight:400;color:rgba(255,255,255,.8);z-index:5;flex-shrink:0}
-.sim-statusbar svg{width:18px;height:18px;fill:currentColor}
-.sim-statusbar .right{display:flex;gap:6px;align-items:center}
+.statusbar{position:fixed;top:0;left:0;right:0;height:32px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-size:13px;font-weight:400;color:rgba(255,255,255,.65);z-index:200}
+.statusbar svg{width:18px;height:18px;fill:currentColor}
+.statusbar .r{display:flex;align-items:center;gap:6px}
 
-/* Search bar */
-.sim-searchbar{margin:8px 16px 16px;height:48px;background:rgba(255,255,255,0.08);border-radius:24px;display:flex;align-items:center;padding:0 16px;gap:12px;z-index:5;flex-shrink:0}
-.sim-searchbar svg{width:22px;height:22px;fill:rgba(255,255,255,.5)}
-.sim-searchbar .spacer{flex:1}
+.searchbar{margin:40px 16px 14px;height:46px;background:rgba(255,255,255,.08);border-radius:24px;display:flex;align-items:center;padding:0 14px;gap:10px}
+.searchbar svg{width:20px;height:20px;fill:rgba(255,255,255,.45)}
+.searchbar .g{font-size:18px;font-weight:500;background:linear-gradient(135deg,#4285F4,#34A853,#FBBC05,#EA4335);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.searchbar .sp{flex:1}
 
-/* App grid */
-.sim-appgrid{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:16px 8px;padding:8px 20px;align-content:start;z-index:5;overflow:hidden}
-.sim-appicon{display:flex;flex-direction:column;align-items:center;gap:6px}
-.sim-appicon-box{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center}
-.sim-appicon-box svg{width:26px;height:26px;fill:rgba(255,255,255,.9)}
-.sim-appicon-label{font-size:10px;font-weight:300;color:rgba(255,255,255,.6);text-align:center;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.appgrid{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:16px 4px;padding:4px 12px;align-content:start;overflow:hidden}
+.appi{display:flex;flex-direction:column;align-items:center;gap:5px;filter:brightness(.75)}
+.appi-box{width:50px;height:50px;border-radius:13px;display:flex;align-items:center;justify-content:center}
+.appi-box svg{width:24px;height:24px;fill:rgba(255,255,255,.9)}
+.appi-lbl{font-size:10px;font-weight:300;color:rgba(255,255,255,.55);text-align:center;width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-/* Dock */
-.sim-dock{display:flex;justify-content:center;gap:20px;padding:12px 0;background:rgba(255,255,255,0.04);margin:0 12px 8px;border-radius:24px;z-index:5;flex-shrink:0}
-.sim-dock .sim-appicon-box{width:56px;height:56px}
+.dock{position:fixed;bottom:32px;left:12px;right:12px;height:70px;background:rgba(255,255,255,.04);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:22px;display:flex;justify-content:space-around;align-items:center;z-index:150}
+.dock .appi-box{width:48px;height:48px;border-radius:12px}
 
-/* Nav bar */
-.sim-navbar{height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;z-index:5;padding-bottom:env(safe-area-inset-bottom,8px)}
-.sim-navpill{width:134px;height:5px;background:rgba(255,255,255,.4);border-radius:3px}
+.pagedots{position:fixed;bottom:106px;left:0;right:0;display:flex;justify-content:center;gap:4px;z-index:150}
+.pagedots span{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.2)}
+.pagedots span.active{background:rgba(255,255,255,.6)}
+
+.navbar{position:fixed;bottom:8px;left:0;right:0;display:flex;justify-content:center;z-index:200}
+.navpill{width:134px;height:5px;background:rgba(255,255,255,.35);border-radius:3px}
+
+/* ═══ OVERLAY ═══ */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0);pointer-events:none;transition:background .3s;z-index:50}
+.overlay.active{background:rgba(0,0,0,.65);pointer-events:auto}
 
 /* ═══ FLOATING ORB ═══ */
-.floating-orb{position:fixed;z-index:100;cursor:grab;touch-action:none;transition:opacity .3s}
-.floating-orb.dragging{cursor:grabbing}
-.floating-orb.dimmed{opacity:0.5}
-.floating-orb.hidden-edge{transform:translateX(var(--hide-offset))!important}
+.forb{position:fixed;z-index:100;cursor:grab;touch-action:none;transition:opacity .25s}
+.forb.drag{cursor:grabbing}
+.forb.dim{opacity:.45}
+.forb.tuck{transition:transform .3s}
 
-.floating-orb-inner{position:relative;width:64px;height:64px;border-radius:50%;overflow:hidden}
-.floating-orb-glow{position:absolute;inset:-50%;width:200%;height:200%;background:radial-gradient(circle,rgba(0,180,255,.2) 0%,transparent 50%);filter:blur(15px);pointer-events:none}
-#floatingCanvas{width:100%;height:100%}
-.floating-orb-shadow{position:absolute;bottom:-6px;left:10%;right:10%;height:8px;background:radial-gradient(ellipse,rgba(0,0,0,.3) 0%,transparent 70%);filter:blur(4px)}
+.forb-inner{position:relative;width:64px;height:64px}
+.forb-glow{position:absolute;inset:-30%;width:160%;height:160%;background:radial-gradient(circle,rgba(0,180,255,.25),transparent 60%);filter:blur(12px);opacity:.5;transition:opacity .2s}
+#fcanvas{width:64px;height:64px}
+.forb-shadow{position:absolute;bottom:-5px;left:12px;right:12px;height:10px;background:radial-gradient(ellipse,rgba(0,0,0,.35),transparent 70%);filter:blur(5px)}
+.nbadge{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;background:#FF3B30;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#fff;padding:0 4px;transform:scale(0);transition:transform .25s cubic-bezier(.175,.885,.32,1.275)}
+.nbadge.vis{transform:scale(1)}
 
-/* Notification badge */
-.notif-badge{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;background:var(--cyan);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#000;padding:0 5px;transform:scale(0);transition:transform .2s cubic-bezier(0.175,0.885,0.32,1.275)}
-.notif-badge.visible{transform:scale(1)}
+/* ═══ EXPANDED ═══ */
+.exporb{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);opacity:0;pointer-events:none;transition:all .4s cubic-bezier(.175,.885,.32,1.275);z-index:100}
+.exporb.active{transform:translate(-50%,-50%) scale(1);opacity:1;pointer-events:auto}
+.exporb-wrap{position:relative;width:min(75vw,300px);height:min(75vw,300px);display:flex;align-items:center;justify-content:center}
+.exporb-glow{position:absolute;width:150%;height:150%;border-radius:50%;background:radial-gradient(circle,rgba(0,180,255,.12),rgba(123,47,255,.05) 50%,transparent 70%);filter:blur(40px)}
+#ecanvas{position:absolute;inset:0}
 
-/* ═══ EXPANDED STATE ═══ */
-.expand-overlay{position:fixed;inset:0;background:rgba(0,0,0,0);pointer-events:none;transition:background .3s;z-index:90}
-.expand-overlay.active{background:rgba(0,0,0,.65);pointer-events:auto}
+/* ═══ RADIAL MENU ═══ */
+.rmenu{position:absolute;inset:0;pointer-events:none}
+.ricon{position:absolute;width:58px;height:58px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(255,255,255,.06);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);opacity:0;transform:scale(0);transition:all .4s cubic-bezier(.175,.885,.32,1.275);pointer-events:none;cursor:pointer}
+.ricon.vis{opacity:1;transform:scale(1) translate(var(--x),var(--y));pointer-events:auto}
+.ricon.top{border-color:rgba(0,200,255,.15);box-shadow:0 0 15px rgba(0,200,255,.12)}
+.ricon:active{transform:scale(.9) translate(var(--x),var(--y))!important;background:rgba(0,102,255,.2)}
+.ricon svg{width:24px;height:24px;stroke:rgba(255,255,255,.65);stroke-width:1.5;fill:none}
+.ricon-lbl{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:300;color:rgba(255,255,255,.4);white-space:nowrap}
+.ricon-dot{position:absolute;top:-2px;right:-2px;width:7px;height:7px;border-radius:50%}
 
-.expanded-orb{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);opacity:0;pointer-events:none;transition:transform .4s cubic-bezier(0.175,0.885,0.32,1.275),opacity .3s;z-index:100}
-.expanded-orb.active{transform:translate(-50%,-50%) scale(1);opacity:1;pointer-events:auto}
-.expanded-orb-wrap{position:relative;width:min(72vw,320px);height:min(72vw,320px);display:flex;align-items:center;justify-content:center}
-.expanded-orb-glow{position:absolute;width:150%;height:150%;border-radius:50%;background:radial-gradient(circle,rgba(0,180,255,.12) 0%,rgba(123,47,255,.06) 40%,transparent 70%);filter:blur(50px);pointer-events:none}
-#expandedCanvas{position:absolute;inset:0;width:100%;height:100%}
+/* Quick actions */
+.qpill{position:absolute;background:rgba(255,255,255,.07);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:8px 14px;font-size:11px;font-weight:300;color:rgba(255,255,255,.7);white-space:nowrap;opacity:0;transform:scale(.8);transition:all .25s cubic-bezier(.175,.885,.32,1.275);pointer-events:none;cursor:pointer;z-index:110}
+.qpill.vis{opacity:1;transform:scale(1) translate(var(--qx),var(--qy));pointer-events:auto}
+.qpill:active{background:rgba(0,102,255,.2)}
 
-/* Radial menu */
-.radial-menu{position:absolute;width:100%;height:100%;pointer-events:none}
-.app-icon{position:absolute;top:50%;left:50%;width:58px;height:58px;margin:-29px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--glass-border);opacity:0;transform:scale(0);transition:all .35s cubic-bezier(0.175,0.885,0.32,1.275);pointer-events:none;cursor:pointer}
-.app-icon.visible{opacity:1;transform:scale(1) translate(var(--tx),var(--ty));pointer-events:auto}
-.app-icon:active{transform:scale(0.92) translate(var(--tx),var(--ty))!important;background:rgba(0,102,255,0.2)}
-.app-icon svg{width:24px;height:24px;stroke:rgba(255,255,255,0.7);stroke-width:1.5;fill:none}
-.app-label{position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:300;color:rgba(255,255,255,0.4);white-space:nowrap}
-.app-notif{position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%}
+/* ═══ VOICE ═══ */
+.voverlay{position:fixed;inset:0;background:rgba(0,0,0,.8);opacity:0;pointer-events:none;transition:opacity .3s;z-index:90}
+.voverlay.active{opacity:1;pointer-events:auto}
+.vorb{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);width:200px;height:200px;opacity:0;transition:all .4s cubic-bezier(.175,.885,.32,1.275);z-index:100}
+.vorb.active{transform:translate(-50%,-50%) scale(1);opacity:1}
+#vcanvas{width:100%;height:100%}
+.vtext{position:fixed;top:calc(50% + 120px);left:0;right:0;text-align:center;z-index:100;pointer-events:none}
+.vstatus{font-size:12px;font-weight:200;color:rgba(0,212,255,.7);letter-spacing:4px;text-transform:uppercase;margin-bottom:12px;opacity:0;transition:opacity .3s}
+.voverlay.active~.vtext .vstatus{opacity:1}
+.vtrans{font-size:20px;font-weight:300;min-height:28px;padding:0 28px;opacity:0;transition:opacity .3s}
+.voverlay.active~.vtext .vtrans{opacity:1}
+.vresp{font-size:15px;font-weight:300;color:rgba(255,255,255,.55);padding:0 28px;margin-top:10px;opacity:0;transition:opacity .3s}
+.voverlay.active~.vtext .vresp{opacity:1}
 
-/* Voice UI */
-.voice-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);opacity:0;pointer-events:none;transition:opacity .3s;z-index:95}
-.voice-overlay.active{opacity:1;pointer-events:auto}
-.voice-orb{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);width:200px;height:200px;opacity:0;pointer-events:none;transition:all .4s cubic-bezier(0.175,0.885,0.32,1.275);z-index:100}
-.voice-orb.active{transform:translate(-50%,-50%) scale(1);opacity:1}
-#voiceCanvas{width:100%;height:100%}
-.voice-text{position:fixed;top:calc(50% + 130px);left:0;right:0;text-align:center;z-index:100;pointer-events:none}
-.voice-status{font-size:12px;font-weight:200;color:rgba(0,212,255,.7);letter-spacing:4px;text-transform:uppercase;margin-bottom:12px;opacity:0;transition:opacity .3s}
-.voice-overlay.active~.voice-text .voice-status{opacity:1}
-.voice-transcript{font-size:20px;font-weight:300;color:#fff;min-height:28px;padding:0 32px;opacity:0;transition:opacity .3s}
-.voice-overlay.active~.voice-text .voice-transcript{opacity:1}
-.voice-response{font-size:15px;font-weight:300;color:rgba(255,255,255,.55);padding:0 32px;margin-top:10px;opacity:0;transition:opacity .3s}
-.voice-overlay.active~.voice-text .voice-response{opacity:1}
+/* ═══ INFO CARD ═══ */
+.icard{position:fixed;background:rgba(255,255,255,.05);backdrop-filter:blur(25px);-webkit-backdrop-filter:blur(25px);border:1px solid rgba(255,255,255,.06);border-radius:18px;padding:16px 20px;opacity:0;pointer-events:none;transition:all .3s;z-index:120;width:230px}
+.icard.vis{opacity:1;pointer-events:auto}
+.icard .tm{font-size:28px;font-weight:200}
+.icard .dt{font-size:12px;font-weight:300;color:rgba(255,255,255,.35);margin-top:2px}
+.icard .div{height:1px;background:rgba(255,255,255,.05);margin:12px 0}
+.icard .wt{font-size:13px;font-weight:300;color:rgba(255,255,255,.45)}
+.icard .ev{font-size:12px;font-weight:300;color:rgba(255,255,255,.35);margin-top:8px}
 
-/* Info card */
-.info-card{position:fixed;background:rgba(255,255,255,0.06);backdrop-filter:blur(25px);-webkit-backdrop-filter:blur(25px);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:16px 20px;opacity:0;pointer-events:none;transition:all .3s;z-index:110;width:220px}
-.info-card.visible{opacity:1;pointer-events:auto}
-.info-card .time{font-size:28px;font-weight:200}
-.info-card .date{font-size:12px;font-weight:300;color:rgba(255,255,255,.4);margin-top:2px}
-.info-card .divider{height:1px;background:rgba(255,255,255,0.06);margin:12px 0}
-.info-card .weather{font-size:13px;font-weight:300;color:rgba(255,255,255,.5)}
-.info-card .event{font-size:12px;font-weight:300;color:rgba(255,255,255,.4);margin-top:8px}
-
-/* Toast */
-.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(20,25,40,.9);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:10px 20px;font-size:13px;font-weight:300;color:rgba(255,255,255,.8);opacity:0;transition:all .3s;z-index:200;white-space:nowrap}
-.toast.visible{opacity:1;transform:translateX(-50%) translateY(0)}
-
-/* ═══ LAUNCHER MODE ═══ */
-.launcher-mode{position:fixed;inset:0;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .4s}
-.launcher-mode.active{opacity:1;pointer-events:auto}
-.launcher-bg{position:absolute;inset:0;background:linear-gradient(180deg,#050A14 0%,#030810 100%)}
-.launcher-bg::before{content:'';position:absolute;inset:0;opacity:0.02;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
-
-.launcher-statusbar{position:absolute;top:0;left:0;right:0;height:32px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-size:13px;color:rgba(255,255,255,.5);z-index:10}
-.launcher-statusbar svg{width:16px;height:16px;fill:currentColor}
-
-.launcher-orb{position:relative;width:min(72vw,340px);height:min(72vw,340px);z-index:10;cursor:pointer}
-.launcher-orb-glow{position:absolute;width:150%;height:150%;top:-25%;left:-25%;border-radius:50%;background:radial-gradient(circle,rgba(0,180,255,.1) 0%,transparent 60%);filter:blur(50px)}
-#launcherCanvas{width:100%;height:100%}
-
-.launcher-suggestions{display:flex;gap:12px;margin-top:30px;z-index:10}
-.launcher-suggestion{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.06);border-radius:20px;padding:8px 14px;cursor:pointer;transition:background .2s}
-.launcher-suggestion:active{background:rgba(255,255,255,0.1)}
-.launcher-suggestion-icon{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center}
-.launcher-suggestion-icon svg{width:14px;height:14px;fill:#fff}
-.launcher-suggestion-label{font-size:12px;font-weight:300;color:rgba(255,255,255,.6)}
-.launcher-suggestions-label{position:absolute;top:-18px;left:0;font-size:9px;color:rgba(255,255,255,.15);letter-spacing:1px;text-transform:uppercase}
-
-.launcher-brand{position:absolute;bottom:calc(env(safe-area-inset-bottom,20px) + 60px);font-size:10px;font-weight:300;letter-spacing:8px;color:rgba(255,255,255,.06);z-index:10}
+/* ═══ LAUNCHER ═══ */
+.launcher{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .4s;z-index:1}
+.launcher.active{opacity:1;pointer-events:auto}
+.launcher .wallpaper{opacity:.5}
+.launcher .statusbar{color:rgba(255,255,255,.3)}
+.lorb{position:relative;width:min(75vw,320px);height:min(75vw,320px);cursor:pointer;z-index:10}
+.lorb-glow{position:absolute;inset:-25%;width:150%;height:150%;border-radius:50%;background:radial-gradient(circle,rgba(0,180,255,.1),transparent 60%);filter:blur(40px)}
+#lcanvas{width:100%;height:100%}
+.lsugg{display:flex;gap:10px;margin-top:28px;z-index:10;position:relative}
+.lsugg-lbl{position:absolute;top:-16px;left:0;font-size:8px;color:rgba(255,255,255,.15);letter-spacing:1px;text-transform:uppercase}
+.lsugg-pill{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.05);border-radius:18px;padding:7px 12px;cursor:pointer;transition:background .15s}
+.lsugg-pill:active{background:rgba(255,255,255,.1)}
+.lsugg-icon{width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center}
+.lsugg-icon svg{width:12px;height:12px;fill:#fff}
+.lsugg-name{font-size:11px;font-weight:300;color:rgba(255,255,255,.4)}
+.lbrand{position:absolute;bottom:calc(env(safe-area-inset-bottom,20px) + 50px);font-size:10px;font-weight:300;letter-spacing:8px;color:rgba(255,255,255,.06);z-index:10}
 
 /* App drawer */
-.app-drawer{position:fixed;inset:0;background:rgba(10,15,25,.94);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);transform:translateY(100%);transition:transform .4s cubic-bezier(0.22,1,0.36,1);z-index:150}
-.app-drawer.open{transform:translateY(0)}
-.app-drawer-handle{width:40px;height:4px;background:rgba(255,255,255,.2);border-radius:2px;margin:12px auto}
-.app-drawer-search{margin:8px 20px 16px;height:44px;background:rgba(255,255,255,0.08);border-radius:12px;display:flex;align-items:center;padding:0 16px;font-size:14px;color:rgba(255,255,255,.4)}
-.app-drawer-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px 8px;padding:0 20px 100px;overflow-y:auto;max-height:calc(100vh - 100px)}
-.app-drawer-icon{display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer}
-.app-drawer-icon:active .sim-appicon-box{transform:scale(0.9)}
-.app-drawer-icon .sim-appicon-box{transition:transform .15s}
+.adrawer{position:fixed;inset:0;background:rgba(10,15,30,.94);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);transform:translateY(100%);transition:transform .4s cubic-bezier(.22,1,.36,1);z-index:160;border-radius:24px 24px 0 0;padding-top:12px}
+.adrawer.open{transform:translateY(0)}
+.adrawer-handle{width:40px;height:4px;background:rgba(255,255,255,.2);border-radius:2px;margin:0 auto 16px}
+.adrawer-search{margin:0 20px 16px;height:42px;background:rgba(255,255,255,.06);border-radius:12px;display:flex;align-items:center;padding:0 14px;font-size:13px;color:rgba(255,255,255,.25)}
+.adrawer-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px 8px;padding:0 16px 100px;overflow-y:auto;max-height:calc(100vh - 100px)}
 
-/* Notification shade */
-.notif-shade{position:fixed;top:0;left:0;right:0;background:rgba(10,15,25,.95);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);transform:translateY(-100%);transition:transform .35s cubic-bezier(0.22,1,0.36,1);z-index:160;padding:40px 16px 24px;max-height:70vh;overflow:auto}
-.notif-shade.open{transform:translateY(0)}
-.notif-shade-title{font-size:12px;color:rgba(255,255,255,.4);margin-bottom:12px;letter-spacing:1px}
-.notif-card{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:background .15s}
-.notif-card:active{background:rgba(255,255,255,0.1)}
-.notif-card-app{font-size:11px;color:rgba(255,255,255,.4);margin-bottom:4px}
-.notif-card-text{font-size:14px;font-weight:300;color:rgba(255,255,255,.8)}
-.notif-card-time{font-size:11px;color:rgba(255,255,255,.3);margin-top:4px}
+/* Notif shade */
+.nshade{position:fixed;top:0;left:0;right:0;background:rgba(10,15,30,.92);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);transform:translateY(-100%);transition:transform .35s cubic-bezier(.22,1,.36,1);z-index:170;padding:44px 16px 24px;max-height:70vh;overflow:auto;border-radius:0 0 24px 24px}
+.nshade.open{transform:translateY(0)}
+.nshade-title{font-size:11px;color:rgba(255,255,255,.35);margin-bottom:12px;letter-spacing:1px}
+.ncard{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.05);border-radius:16px;padding:12px 14px;margin-bottom:10px;cursor:pointer;transition:background .15s}
+.ncard:active{background:rgba(255,255,255,.1)}
+.ncard-app{font-size:10px;color:rgba(255,255,255,.4);margin-bottom:3px}
+.ncard-text{font-size:13px;font-weight:300;color:rgba(255,255,255,.75)}
+.ncard-time{font-size:10px;color:rgba(255,255,255,.25);margin-top:3px}
 
-/* ═══ WIDGET MODE ═══ */
-.widget-mode{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .4s;z-index:1}
-.widget-mode.active{opacity:1;pointer-events:auto}
-.widget-frame{width:300px;height:300px;background:rgba(10,15,30,0.85);border:1px solid rgba(255,255,255,0.05);border-radius:24px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;z-index:10}
-.widget-label{font-size:10px;color:rgba(255,255,255,.2);margin-bottom:8px;letter-spacing:1px}
-.widget-row{display:flex;justify-content:space-around;width:100%;padding:0 8px}
-.widget-row.top{margin-bottom:auto;padding-top:8px}
-.widget-row.bottom{margin-top:auto;padding-bottom:8px}
-.widget-icon{width:42px;height:42px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:50%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.06);cursor:pointer;position:relative}
-.widget-icon:active{background:rgba(255,255,255,0.15)}
-.widget-icon svg{width:18px;height:18px;stroke:rgba(255,255,255,0.7);stroke-width:1.5;fill:none}
-.widget-icon-label{font-size:8px;font-weight:300;color:rgba(255,255,255,.35);margin-top:4px}
-.widget-orb-wrap{width:140px;height:140px;position:relative;cursor:pointer}
-.widget-orb-glow{position:absolute;inset:-30%;width:160%;height:160%;border-radius:50%;background:radial-gradient(circle,rgba(0,180,255,.08) 0%,transparent 60%);filter:blur(25px)}
-#widgetCanvas{width:100%;height:100%;animation:breathe 4s ease-in-out infinite}
-@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.01)}}
+/* Ambient */
+.ambient-time{position:fixed;top:calc(50% - 180px);left:0;right:0;text-align:center;font-size:48px;font-weight:200;color:rgba(255,255,255,.25);opacity:0;transition:opacity .5s;z-index:100;pointer-events:none}
+.ambient-time.vis{opacity:1}
+.ambient-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);opacity:0;pointer-events:none;transition:opacity .5s;z-index:90}
+.ambient-overlay.vis{opacity:1}
 
-/* ═══ MODE SWITCHER ═══ */
-.mode-switcher{position:fixed;bottom:calc(env(safe-area-inset-bottom,20px) + 20px);left:50%;transform:translateX(-50%);display:flex;gap:24px;z-index:200}
-.mode-btn{font-size:11px;font-weight:300;letter-spacing:.5px;color:rgba(255,255,255,.2);cursor:pointer;padding:6px 0;border-bottom:1px solid transparent;transition:all .2s}
-.mode-btn.active{color:rgba(255,255,255,.6);border-bottom-color:var(--cyan)}
+/* ═══ MODE SWITCH ═══ */
+.mswitch{position:fixed;bottom:calc(env(safe-area-inset-bottom,12px) + 8px);left:50%;transform:translateX(-50%);display:flex;gap:16px;background:rgba(255,255,255,.03);border-radius:20px;padding:7px 18px;z-index:200}
+.mswitch-btn{font-size:10px;font-weight:400;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.15);cursor:pointer;padding:4px 0;border-bottom:1px solid transparent;transition:all .2s}
+.mswitch-btn.active{color:rgba(255,255,255,.5);border-bottom-color:rgba(0,200,255,.4)}
 
-/* iOS banner */
-.ios-banner{position:fixed;top:40px;left:16px;right:16px;background:rgba(255,255,255,0.06);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 16px;font-size:11px;font-weight:300;color:rgba(255,255,255,.6);line-height:1.5;z-index:300;transform:translateY(-20px);opacity:0;transition:all .3s}
-.ios-banner.visible{transform:translateY(0);opacity:1}
+/* ═══ TOAST ═══ */
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(20,25,40,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 18px;font-size:13px;font-weight:300;color:rgba(255,255,255,.75);opacity:0;transition:all .3s;z-index:250;white-space:nowrap}
+.toast.vis{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* Dismiss zone */
-.dismiss-zone{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:80px;height:80px;border-radius:50%;background:rgba(255,0,0,0.1);border:2px dashed rgba(255,100,100,0.3);display:flex;align-items:center;justify-content:center;font-size:24px;color:rgba(255,100,100,0.5);opacity:0;pointer-events:none;transition:opacity .2s;z-index:99}
-.dismiss-zone.visible{opacity:1}
+.dzone{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);width:56px;height:56px;border-radius:50%;background:rgba(255,100,100,.08);border:2px dashed rgba(255,100,100,.25);display:flex;align-items:center;justify-content:center;font-size:20px;color:rgba(255,100,100,.4);opacity:0;pointer-events:none;transition:all .2s;z-index:99}
+.dzone.vis{opacity:1}
+.dzone.hot{transform:translateX(-50%) scale(1.2);background:rgba(255,100,100,.15);border-color:rgba(255,100,100,.4)}
+
+/* Restore pill */
+.restore{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.06);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:10px 18px;font-size:11px;font-weight:300;color:rgba(255,255,255,.5);cursor:pointer;opacity:0;pointer-events:none;transition:all .3s;z-index:200}
+.restore.vis{opacity:1;pointer-events:auto}
+
+/* Onboard */
+.onboard{position:fixed;z-index:150;pointer-events:none;text-align:center;opacity:0;transition:opacity .5s}
+.onboard.vis{opacity:1}
+.onboard-title{font-size:16px;font-weight:200;letter-spacing:2px;color:rgba(255,255,255,.7)}
+.onboard-sub{font-size:12px;font-weight:300;color:rgba(255,255,255,.45);margin-top:8px}
 </style>
 </head>
 <body>
 
-<!-- SIMULATED ANDROID HOME -->
-<div class="sim-home" id="simHome">
+<!-- HOME -->
+<div class="home" id="home">
   <div class="wallpaper"></div>
-  <div class="sim-statusbar">
-    <span id="simClock"></span>
-    <div class="right">
-      <svg viewBox="0 0 24 24"><path d="M5 12.55a11 11 0 0114.08 0M1.42 9a16 16 0 0121.16 0M8.53 16.11a6 6 0 016.95 0M12 20h.01"/></svg>
-      <svg viewBox="0 0 24 24"><rect x="1" y="6" width="18" height="12" rx="2"/><line x1="23" y1="13" x2="23" y2="11" stroke="currentColor" stroke-width="2"/></svg>
-    </div>
-  </div>
-  <div class="sim-searchbar">
-    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><text x="7" y="17" font-size="14">G</text></svg>
-    <div class="spacer"></div>
-    <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/></svg>
-  </div>
-  <div class="sim-appgrid" id="simAppGrid"></div>
-  <div class="sim-dock" id="simDock"></div>
-  <div class="sim-navbar"><div class="sim-navpill"></div></div>
+  <div class="statusbar"><span id="clock"></span><div class="r"><svg viewBox="0 0 24 24"><path d="M5 12.55a11 11 0 0114.08 0M1.42 9a16 16 0 0121.16 0M8.53 16.11a6 6 0 016.95 0M12 20h.01"/></svg><svg viewBox="0 0 24 24"><rect x="1" y="6" width="18" height="12" rx="2"/><line x1="23" y1="13" x2="23" y2="11" stroke="currentColor" stroke-width="2"/></svg><span style="font-size:11px">87%</span></div></div>
+  <div class="searchbar"><span class="g">G</span><div class="sp"></div><svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/></svg></div>
+  <div class="appgrid" id="appgrid"></div>
+  <div class="dock" id="dock"></div>
+  <div class="pagedots"><span class="active"></span><span></span><span></span></div>
+  <div class="navbar"><div class="navpill"></div></div>
 </div>
 
 <!-- FLOATING ORB -->
-<div class="floating-orb" id="floatingOrb">
-  <div class="floating-orb-inner">
-    <div class="floating-orb-glow"></div>
-    <canvas id="floatingCanvas"></canvas>
+<div class="forb" id="forb">
+  <div class="forb-inner">
+    <div class="forb-glow" id="fglow"></div>
+    <canvas id="fcanvas" width="128" height="128"></canvas>
   </div>
-  <div class="floating-orb-shadow"></div>
-  <div class="notif-badge" id="notifBadge">3</div>
+  <div class="forb-shadow"></div>
+  <div class="nbadge" id="nbadge">3</div>
 </div>
 
-<!-- EXPANDED STATE -->
-<div class="expand-overlay" id="expandOverlay"></div>
-<div class="expanded-orb" id="expandedOrb">
-  <div class="expanded-orb-wrap">
-    <div class="expanded-orb-glow"></div>
-    <canvas id="expandedCanvas"></canvas>
-    <div class="radial-menu" id="radialMenu"></div>
+<!-- OVERLAY -->
+<div class="overlay" id="overlay"></div>
+
+<!-- EXPANDED -->
+<div class="exporb" id="exporb">
+  <div class="exporb-wrap">
+    <div class="exporb-glow"></div>
+    <canvas id="ecanvas"></canvas>
+    <div class="rmenu" id="rmenu"></div>
   </div>
 </div>
 
-<!-- VOICE MODE -->
-<div class="voice-overlay" id="voiceOverlay"></div>
-<div class="voice-orb" id="voiceOrb">
-  <canvas id="voiceCanvas"></canvas>
-</div>
-<div class="voice-text">
-  <div class="voice-status" id="voiceStatus">Listening</div>
-  <div class="voice-transcript" id="voiceTranscript"></div>
-  <div class="voice-response" id="voiceResponse"></div>
-</div>
+<!-- VOICE -->
+<div class="voverlay" id="voverlay"></div>
+<div class="vorb" id="vorb"><canvas id="vcanvas" width="400" height="400"></canvas></div>
+<div class="vtext"><div class="vstatus" id="vstatus">Listening</div><div class="vtrans" id="vtrans"></div><div class="vresp" id="vresp"></div></div>
 
 <!-- INFO CARD -->
-<div class="info-card" id="infoCard">
-  <div class="time" id="infoTime"></div>
-  <div class="date" id="infoDate"></div>
-  <div class="divider"></div>
-  <div class="weather">☀️ 72°F Sunny</div>
-  <div class="event">📅 Team standup · 3:00 PM</div>
-</div>
+<div class="icard" id="icard"><div class="tm" id="itm"></div><div class="dt" id="idt"></div><div class="div"></div><div class="wt">☀️ 72°F Sunny</div><div class="ev">📅 Team standup · 3:00 PM</div></div>
 
-<!-- LAUNCHER MODE -->
-<div class="launcher-mode" id="launcherMode">
-  <div class="launcher-bg"></div>
-  <div class="launcher-statusbar">
-    <span id="launcherClock"></span>
-    <div class="right"><svg viewBox="0 0 24 24"><rect x="1" y="6" width="18" height="12" rx="2"/><line x1="23" y1="13" x2="23" y2="11" stroke="currentColor" stroke-width="2"/></svg></div>
-  </div>
-  <div class="launcher-orb" id="launcherOrb">
-    <div class="launcher-orb-glow"></div>
-    <canvas id="launcherCanvas"></canvas>
-  </div>
-  <div class="launcher-suggestions" id="launcherSuggestions"></div>
-  <div class="launcher-brand">O R B</div>
-</div>
-
-<!-- APP DRAWER -->
-<div class="app-drawer" id="appDrawer">
-  <div class="app-drawer-handle"></div>
-  <div class="app-drawer-search">Search apps...</div>
-  <div class="app-drawer-grid" id="appDrawerGrid"></div>
-</div>
-
-<!-- NOTIFICATION SHADE -->
-<div class="notif-shade" id="notifShade">
-  <div class="notif-shade-title">NOTIFICATIONS</div>
-  <div class="notif-card"><div class="notif-card-app">Messages</div><div class="notif-card-text">Mom: Are you coming for dinner?</div><div class="notif-card-time">5m ago</div></div>
-  <div class="notif-card"><div class="notif-card-app">Gmail</div><div class="notif-card-text">Meeting notes shared</div><div class="notif-card-time">23m ago</div></div>
-  <div class="notif-card"><div class="notif-card-app">Spotify</div><div class="notif-card-text">Your Daily Mix is ready</div><div class="notif-card-time">1h ago</div></div>
-</div>
-
-<!-- WIDGET MODE -->
-<div class="widget-mode" id="widgetMode">
+<!-- LAUNCHER -->
+<div class="launcher" id="launcher">
   <div class="wallpaper"></div>
-  <div class="sim-statusbar"><span id="widgetClock"></span><div class="right"><svg viewBox="0 0 24 24"><rect x="1" y="6" width="18" height="12" rx="2"/></svg></div></div>
-  <div class="widget-label">4×4 Widget Preview</div>
-  <div class="widget-frame" id="widgetFrame">
-    <div class="widget-row top" id="widgetRowTop"></div>
-    <div class="widget-orb-wrap" id="widgetOrbWrap">
-      <div class="widget-orb-glow"></div>
-      <canvas id="widgetCanvas"></canvas>
-    </div>
-    <div class="widget-row bottom" id="widgetRowBottom"></div>
-  </div>
+  <div class="statusbar"><span id="lclock"></span><div class="r"><svg viewBox="0 0 24 24"><rect x="1" y="6" width="18" height="12" rx="2"/></svg></div></div>
+  <div class="lorb" id="lorb"><div class="lorb-glow"></div><canvas id="lcanvas"></canvas></div>
+  <div class="lsugg" id="lsugg"><span class="lsugg-lbl">Suggested</span></div>
+  <div class="lbrand">O R B</div>
 </div>
 
-<!-- MODE SWITCHER -->
-<div class="mode-switcher" id="modeSwitcher">
-  <div class="mode-btn active" data-mode="overlay">Overlay</div>
-  <div class="mode-btn" data-mode="launcher">Launcher</div>
-  <div class="mode-btn" data-mode="widget">Widget</div>
+<!-- DRAWER -->
+<div class="adrawer" id="adrawer"><div class="adrawer-handle"></div><div class="adrawer-search">Search apps...</div><div class="adrawer-grid" id="adgrid"></div></div>
+
+<!-- NOTIF SHADE -->
+<div class="nshade" id="nshade">
+  <div class="nshade-title">NOTIFICATIONS</div>
+  <div class="ncard"><div class="ncard-app">Messages</div><div class="ncard-text">Mom: Are you coming for dinner?</div><div class="ncard-time">5m ago</div></div>
+  <div class="ncard"><div class="ncard-app">Gmail</div><div class="ncard-text">Meeting notes shared</div><div class="ncard-time">23m ago</div></div>
+  <div class="ncard"><div class="ncard-app">Spotify</div><div class="ncard-text">Your Daily Mix is ready</div><div class="ncard-time">1h ago</div></div>
 </div>
+
+<!-- AMBIENT -->
+<div class="ambient-overlay" id="ambov"></div>
+<div class="ambient-time" id="ambtm"></div>
+
+<!-- MODE SWITCH -->
+<div class="mswitch" id="mswitch"><div class="mswitch-btn active" data-m="overlay">Overlay</div><div class="mswitch-btn" data-m="launcher">ORB Mode</div></div>
 
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<!-- DISMISS ZONE -->
-<div class="dismiss-zone" id="dismissZone">×</div>
+<!-- DISMISS -->
+<div class="dzone" id="dzone">×</div>
+<div class="restore" id="restore">Restore ORB</div>
 
-<!-- iOS BANNER -->
-<div class="ios-banner" id="iosBanner">On iOS, ORB would run as a full-screen app. Floating overlays aren't available on iPhone.</div>
+<!-- ONBOARD -->
+<div class="onboard" id="onboard"><div class="onboard-title">Meet ORB</div><div class="onboard-sub">Tap · Hold · Drag</div></div>
 
 <script>
 // ═══════════════════════════════════════════
 // CONFIG
 // ═══════════════════════════════════════════
-const ICONS = {
-  Phone:`<svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.1.65.26 1.29.5 1.9a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.61.24 1.25.4 1.9.5A2 2 0 0122 16.92z"/></svg>`,
-  Messages:`<svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>`,
-  Camera:`<svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>`,
-  Music:`<svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`,
-  Mail:`<svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>`,
-  Map:`<svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>`,
-  Instagram:`<svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/></svg>`,
-  X:`<svg viewBox="0 0 24 24"><path d="M4 4l11.5 16h4.5l-11.5-16z"/><path d="M4 20l6.5-6.5M20 4l-6.5 6.5"/></svg>`
+const ICONS={
+Phone:`<svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.1.65.26 1.29.5 1.9a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.61.24 1.25.4 1.9.5A2 2 0 0122 16.92z"/></svg>`,
+Messages:`<svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>`,
+Camera:`<svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>`,
+Music:`<svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`,
+Mail:`<svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>`,
+Map:`<svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>`,
+Instagram:`<svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/></svg>`,
+X:`<svg viewBox="0 0 24 24"><path d="M4 4l11.5 16h4.5l-11.5-16z"/><path d="M4 20l6.5-6.5M20 4l-6.5 6.5"/></svg>`
 };
-const APPS = [
-  {icon:'Phone',name:'Phone',color:'#34C759'},{icon:'Messages',name:'Messages',color:'#34C759'},
-  {icon:'Camera',name:'Camera',color:'#0066FF'},{icon:'Music',name:'Spotify',color:'#1DB954'},
-  {icon:'Mail',name:'Gmail',color:'#FF3B30'},{icon:'Map',name:'Maps',color:'#4285F4'},
-  {icon:'Instagram',name:'Instagram',color:'#E1306C'},{icon:'X',name:'X',color:'#1DA1F2'}
+const APPS=[
+{i:'Phone',n:'Phone',c:'#34C759',q:['Call Recent','Voicemail']},
+{i:'Messages',n:'Messages',c:'#34C759',q:['New Message','Unread']},
+{i:'Camera',n:'Camera',c:'#0066FF',q:['Photo','Video','Selfie']},
+{i:'Music',n:'Spotify',c:'#1DB954',q:['Resume','Discover']},
+{i:'Mail',n:'Gmail',c:'#FF3B30',q:['Compose','Inbox']},
+{i:'Map',n:'Maps',c:'#4285F4',q:['Home','Work']},
+{i:'Instagram',n:'Instagram',c:'#E1306C',q:['Feed','Stories']},
+{i:'X',n:'X',c:'#1DA1F2',q:['Feed','Post','DMs']}
 ];
-const SIM_APPS = [
-  {name:'Chrome',color:'#4285F4'},{name:'YouTube',color:'#FF0000'},{name:'Photos',color:'#FBBC04'},
-  {name:'Play Store',color:'#48BB78'},{name:'Settings',color:'#718096'},{name:'Clock',color:'#3182CE'},
-  {name:'Files',color:'#ED8936'},{name:'Calculator',color:'#2D3748'},{name:'WhatsApp',color:'#25D366'},
-  {name:'Slack',color:'#4A154B'},{name:'Notion',color:'#000'},{name:'Drive',color:'#FBBC04'},
-  {name:'Uber',color:'#000'},{name:'Amazon',color:'#FF9900'},{name:'Netflix',color:'#E50914'},
-  {name:'Twitch',color:'#9146FF'}
+const GRID_APPS=[
+{n:'Chrome',c:'#4285F4'},{n:'YouTube',c:'#FF0000'},{n:'Photos',c:'#4285F4'},{n:'Play Store',c:'#00C853'},
+{n:'Settings',c:'#607D8B'},{n:'Clock',c:'#1A73E8'},{n:'Files',c:'#1A73E8'},{n:'Calculator',c:'#5BB974'},
+{n:'WhatsApp',c:'#25D366'},{n:'Slack',c:'#611F69'},{n:'Notion',c:'#2D2D2D'},{n:'Drive',c:'#F4B400'},
+{n:'Uber',c:'#000'},{n:'Amazon',c:'#FF9900'},{n:'Netflix',c:'#E50914'},{n:'Twitch',c:'#9146FF'}
 ];
+const DOCK_APPS=['Phone','Messages','Camera','Mail','Map'];
 
-let notifications = {Messages:2,Gmail:1};
-const totalNotifs = Object.values(notifications).reduce((a,b)=>a+b,0);
+let notifCount=Math.floor(Math.random()*6)+1;
+let notifs={Messages:Math.ceil(notifCount/2),Gmail:Math.floor(notifCount/2)};
 
 // ═══════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════
-let mode = 'overlay';
-let orbState = 'floating';
-let orbPos = JSON.parse(localStorage.getItem('orb_pos')||'null') || {x:window.innerWidth-80,y:window.innerHeight/2-32};
-let dragState = {active:false,startX:0,startY:0,movedDist:0};
-let hideTimer = null, dimTimer = null;
-let voiceActive = false, recognition = null, recognizing = false;
+let mode=localStorage.getItem('orb_mode')||'overlay';
+let orbPos=JSON.parse(localStorage.getItem('orb_pos'))||{x:window.innerWidth-72,y:window.innerHeight/2-32};
+let state='floating'; // floating|expanded|voice|ambient
+let drag={active:false,moved:0,startX:0,startY:0,velX:0,velY:0};
+let dimTimer,tuckTimer;
+let qactions=null;
 
 // ═══════════════════════════════════════════
-// PARTICLE SYSTEM
+// PARTICLES
 // ═══════════════════════════════════════════
-const PHI = Math.PI*(3-Math.sqrt(5));
-let dpr = Math.min(window.devicePixelRatio||1,2);
+const PHI=Math.PI*(3-Math.sqrt(5));
+const dpr=Math.min(devicePixelRatio||1,2);
 
-function createParticles(count){
-  const particles = [];
-  for(let i=0;i<count;i++){
-    const y=1-(i/(count-1))*2;
-    const r=Math.sqrt(1-y*y);
-    const theta=PHI*i;
-    const hueRand=Math.random();
-    let hue=hueRand<.4?190:hueRand<.7?220:270;
-    particles.push({
-      baseX:Math.cos(theta)*r,baseY:y,baseZ:Math.sin(theta)*r,
-      x:0,y:0,z:0,
-      size:.8+Math.random()*1.5,hue,
-      alpha:.3+Math.random()*.4,
-      phase:Math.random()*Math.PI*2,
-      drift:.015+Math.random()*.02
-    });
+function mkParts(n){
+  const p=[];
+  for(let i=0;i<n;i++){
+    const y=1-(i/(n-1))*2,r=Math.sqrt(1-y*y),th=PHI*i;
+    const hr=Math.random();
+    p.push({bx:Math.cos(th)*r,by:y,bz:Math.sin(th)*r,x:0,y:0,z:0,
+      sz:.8+Math.random()*1.4,hue:hr<.4?190:hr<.7?220:270,
+      al:.3+Math.random()*.4,ph:Math.random()*Math.PI*2,dr:.012+Math.random()*.018});
   }
-  return particles;
+  return p;
 }
 
-function renderSphere(ctx,particles,W,H,rotY,scale=1,brightness=1,isRing=false,audioLevel=0){
+function renderSphere(ctx,p,W,H,rotY,sc=1,br=1,ring=false,audio=0){
   ctx.clearRect(0,0,W,H);
-  const CX=W/2,CY=H/2,RADIUS=Math.min(W,H)*.38;
-  const time=performance.now();
+  const cx=W/2,cy=H/2,R=Math.min(W,H)*.38,t=performance.now();
   const cosY=Math.cos(rotY),sinY=Math.sin(rotY);
-  
-  const projected=particles.map(p=>{
-    let drift=Math.sin(time*.001+p.phase)*p.drift;
-    let x=p.baseX+drift,y=p.baseY,z=p.baseZ;
-    if(isRing){
-      y*=.3;
-      const ringR=Math.sqrt(x*x+z*z);
-      if(ringR>.3){
-        const angle=Math.atan2(z,x);
-        const disp=audioLevel*.15*Math.sin(time*.003+angle*5);
-        x=Math.cos(angle)*(ringR+disp);
-        z=Math.sin(angle)*(ringR+disp);
-      }
-    }
+  const proj=p.map(pt=>{
+    let d=Math.sin(t*.001+pt.ph)*pt.dr;
+    let x=pt.bx+d,y=pt.by,z=pt.bz;
+    if(ring){y*=.3;const rr=Math.sqrt(x*x+z*z);if(rr>.3){const a=Math.atan2(z,x),disp=audio*.15*Math.sin(t*.003+a*5);x=Math.cos(a)*(rr+disp);z=Math.sin(a)*(rr+disp);}}
     const rx=x*cosY-z*sinY,rz=x*sinY+z*cosY;
-    return {...p,x:rx,y,z:rz};
+    return{...pt,x:rx,y,z:rz};
   }).sort((a,b)=>a.z-b.z);
-  
   ctx.globalCompositeOperation='lighter';
-  for(const p of projected){
-    const s=200/(200+p.z*RADIUS);
-    const sx=CX+p.x*RADIUS*s*scale;
-    const sy=CY+p.y*RADIUS*s*scale;
-    const alpha=p.alpha*(.5+(p.z+1)*.25)*brightness;
-    const size=p.size*s*scale;
-    ctx.beginPath();
-    ctx.arc(sx,sy,size*2.5,0,Math.PI*2);
-    ctx.fillStyle=`hsla(${p.hue},100%,70%,${alpha*.15})`;
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(sx,sy,size,0,Math.PI*2);
-    ctx.fillStyle=`hsla(${p.hue},100%,75%,${alpha})`;
-    ctx.fill();
+  for(const pt of proj){
+    const s=200/(200+pt.z*R),sx=cx+pt.x*R*s*sc,sy=cy+pt.y*R*s*sc;
+    const al=pt.al*(.5+(pt.z+1)*.25)*br,sz=pt.sz*s*sc;
+    ctx.beginPath();ctx.arc(sx,sy,sz*2.5,0,Math.PI*2);ctx.fillStyle=`hsla(${pt.hue},100%,70%,${al*.12})`;ctx.fill();
+    ctx.beginPath();ctx.arc(sx,sy,sz,0,Math.PI*2);ctx.fillStyle=`hsla(${pt.hue},100%,75%,${al})`;ctx.fill();
   }
   ctx.globalCompositeOperation='source-over';
 }
@@ -428,557 +347,528 @@ function renderSphere(ctx,particles,W,H,rotY,scale=1,brightness=1,isRing=false,a
 // ═══════════════════════════════════════════
 // FLOATING ORB
 // ═══════════════════════════════════════════
-const floatingOrb=document.getElementById('floatingOrb');
-const floatingCanvas=document.getElementById('floatingCanvas');
-const floatingCtx=floatingCanvas.getContext('2d');
-const notifBadge=document.getElementById('notifBadge');
-let floatingParticles=createParticles(400);
-let floatingRotY=0;
+const forb=document.getElementById('forb');
+const fcanvas=document.getElementById('fcanvas');
+const fctx=fcanvas.getContext('2d');
+const fglow=document.getElementById('fglow');
+const nbadge=document.getElementById('nbadge');
+let fparts=mkParts(350);
+let frotY=0;
 
-function initFloatingCanvas(){
-  floatingCanvas.width=64*dpr;floatingCanvas.height=64*dpr;
-  floatingCanvas.style.width='64px';floatingCanvas.style.height='64px';
-  floatingCtx.setTransform(dpr,0,0,dpr,0,0);
+fcanvas.width=128*dpr;fcanvas.height=128*dpr;
+fctx.setTransform(dpr,0,0,dpr,0,0);
+
+function updForb(){forb.style.transform=`translate(${orbPos.x}px,${orbPos.y}px)`;}
+updForb();
+
+function animFloat(){
+  if(mode!=='overlay'||state!=='floating'){requestAnimationFrame(animFloat);return;}
+  frotY+=.0015;
+  renderSphere(fctx,fparts,128,128,frotY);
+  requestAnimationFrame(animFloat);
 }
-initFloatingCanvas();
+animFloat();
 
-function updateFloatingOrb(){
-  floatingOrb.style.transform=`translate(${orbPos.x}px,${orbPos.y}px)`;
-}
-updateFloatingOrb();
+if(notifCount>0){nbadge.textContent=notifCount;nbadge.classList.add('vis');}
 
-function animateFloating(){
-  if(mode!=='overlay'||orbState!=='floating'){requestAnimationFrame(animateFloating);return;}
-  floatingRotY+=.002;
-  renderSphere(floatingCtx,floatingParticles,64,64,floatingRotY);
-  requestAnimationFrame(animateFloating);
-}
-animateFloating();
-
-// Badge
-if(totalNotifs>0){notifBadge.textContent=totalNotifs;notifBadge.classList.add('visible');}
-
-// Edge snapping
-function snapToEdge(){
-  const targetX=orbPos.x<window.innerWidth/2?8:window.innerWidth-72;
-  animateSnap(targetX);
-}
-function animateSnap(targetX){
-  const animate=()=>{
-    orbPos.x+=(targetX-orbPos.x)*.15;
-    if(Math.abs(orbPos.x-targetX)<1){orbPos.x=targetX;updateFloatingOrb();savePos();return;}
-    updateFloatingOrb();
-    requestAnimationFrame(animate);
+function snapEdge(){
+  const tgt=orbPos.x<window.innerWidth/2?8:window.innerWidth-72;
+  let vel=0;
+  const anim=()=>{
+    vel+=(tgt-orbPos.x)*.12;vel*=.72;orbPos.x+=vel;
+    if(Math.abs(vel)<.5&&Math.abs(orbPos.x-tgt)<1){orbPos.x=tgt;updForb();savePos();return;}
+    updForb();requestAnimationFrame(anim);
   };
-  animate();
+  anim();
 }
 function savePos(){localStorage.setItem('orb_pos',JSON.stringify(orbPos));}
 
-// Drag handling
-floatingOrb.addEventListener('pointerdown',e=>{
-  if(orbState!=='floating')return;
+function startTimers(){
+  clearTimeout(dimTimer);clearTimeout(tuckTimer);
+  forb.classList.remove('dim','tuck');
+  dimTimer=setTimeout(()=>forb.classList.add('dim'),15000);
+  tuckTimer=setTimeout(()=>{
+    const off=orbPos.x<window.innerWidth/2?-34:34;
+    forb.classList.add('tuck');
+    forb.style.transform=`translate(${orbPos.x+off}px,${orbPos.y}px)`;
+  },25000);
+}
+startTimers();
+
+// ═══════════════════════════════════════════
+// DRAG
+// ═══════════════════════════════════════════
+const dzone=document.getElementById('dzone');
+const restore=document.getElementById('restore');
+
+forb.addEventListener('pointerdown',e=>{
+  if(state!=='floating')return;
   e.preventDefault();
-  dragState={active:true,startX:e.clientX-orbPos.x,startY:e.clientY-orbPos.y,movedDist:0};
-  floatingOrb.classList.add('dragging');
-  floatingOrb.classList.remove('dimmed','hidden-edge');
-  clearTimeout(hideTimer);clearTimeout(dimTimer);
-  document.getElementById('dismissZone').classList.remove('visible');
+  drag={active:true,moved:0,startX:e.clientX-orbPos.x,startY:e.clientY-orbPos.y,velX:0,velY:0};
+  forb.classList.remove('dim','tuck');
+  forb.style.transform=`translate(${orbPos.x}px,${orbPos.y}px)`;
+  clearTimeout(dimTimer);clearTimeout(tuckTimer);
 });
 
 document.addEventListener('pointermove',e=>{
-  if(!dragState.active)return;
-  const newX=e.clientX-dragState.startX;
-  const newY=e.clientY-dragState.startY;
-  dragState.movedDist+=Math.abs(newX-orbPos.x)+Math.abs(newY-orbPos.y);
-  orbPos.x=Math.max(0,Math.min(window.innerWidth-64,newX));
-  orbPos.y=Math.max(0,Math.min(window.innerHeight-64,newY));
-  updateFloatingOrb();
-  // Show dismiss zone when near bottom
-  const dismissZone=document.getElementById('dismissZone');
-  if(orbPos.y>window.innerHeight-150){dismissZone.classList.add('visible');}
-  else{dismissZone.classList.remove('visible');}
+  if(!drag.active)return;
+  const nx=e.clientX-drag.startX,ny=e.clientY-drag.startY;
+  drag.moved+=Math.abs(nx-orbPos.x)+Math.abs(ny-orbPos.y);
+  orbPos.x+=(nx-orbPos.x)*.25;orbPos.y+=(ny-orbPos.y)*.25;
+  orbPos.y=Math.max(40,Math.min(window.innerHeight-140,orbPos.y));
+  updForb();
+  if(orbPos.y>window.innerHeight-130){dzone.classList.add('vis');if(orbPos.y>window.innerHeight-100&&Math.abs(orbPos.x-window.innerWidth/2+32)<50)dzone.classList.add('hot');else dzone.classList.remove('hot');}
+  else{dzone.classList.remove('vis','hot');}
 });
 
 document.addEventListener('pointerup',e=>{
-  if(!dragState.active)return;
-  floatingOrb.classList.remove('dragging');
-  const dismissZone=document.getElementById('dismissZone');
-  dismissZone.classList.remove('visible');
-  // Check dismiss
-  if(orbPos.y>window.innerHeight-100&&orbPos.x>window.innerWidth/2-60&&orbPos.x<window.innerWidth/2+60){
-    floatingOrb.style.transition='all .3s';
-    floatingOrb.style.transform='translate(50%,100%) scale(0)';
-    floatingOrb.style.opacity='0';
-    showToast('Tap to restore ORB',3000);
-    setTimeout(()=>{floatingOrb.style.transition='';},300);
-    dragState.active=false;
+  if(!drag.active)return;
+  drag.active=false;
+  dzone.classList.remove('vis','hot');
+  if(dzone.classList.contains('hot')||orbPos.y>window.innerHeight-100&&Math.abs(orbPos.x-window.innerWidth/2+32)<50){
+    forb.style.transition='all .2s';forb.style.transform='translate(50%,100%) scale(0)';forb.style.opacity='0';
+    haptic([10,20,10]);
+    setTimeout(()=>{forb.style.transition='';restore.classList.add('vis');setTimeout(()=>restore.classList.remove('vis'),6000);},200);
     return;
   }
-  // Tap vs drag
-  if(dragState.movedDist<15){
-    handleOrbTap();
-  }else{
-    snapToEdge();
-  }
-  dragState.active=false;
-  startInactivityTimers();
+  if(drag.moved<12){handleTap();}else{snapEdge();}
+  startTimers();
 });
 
-// Restore orb
-document.getElementById('toast').addEventListener('click',()=>{
-  if(document.getElementById('toast').textContent.includes('restore')){
-    floatingOrb.style.transform=`translate(${orbPos.x}px,${orbPos.y}px)`;
-    floatingOrb.style.opacity='1';
-  }
+restore.addEventListener('click',()=>{
+  restore.classList.remove('vis');
+  orbPos={x:window.innerWidth-72,y:window.innerHeight/2-32};
+  forb.style.transform=`translate(${orbPos.x}px,${orbPos.y}px)`;
+  forb.style.opacity='1';
+  startTimers();
 });
 
-// Inactivity behaviors
-function startInactivityTimers(){
-  clearTimeout(dimTimer);clearTimeout(hideTimer);
-  dimTimer=setTimeout(()=>floatingOrb.classList.add('dimmed'),30000);
-  hideTimer=setTimeout(()=>{
-    const hideOffset=orbPos.x<window.innerWidth/2?'-28px':'28px';
-    floatingOrb.style.setProperty('--hide-offset',hideOffset);
-    floatingOrb.classList.add('hidden-edge');
-  },10000);
-}
-startInactivityTimers();
-
 // ═══════════════════════════════════════════
-// EXPANDED STATE
+// TAP → EXPAND
 // ═══════════════════════════════════════════
-const expandOverlay=document.getElementById('expandOverlay');
-const expandedOrb=document.getElementById('expandedOrb');
-const expandedCanvas=document.getElementById('expandedCanvas');
-const expandedCtx=expandedCanvas.getContext('2d');
-const radialMenu=document.getElementById('radialMenu');
-let expandedParticles=createParticles(1500);
-let expandedRotY=0;
+const overlay=document.getElementById('overlay');
+const exporb=document.getElementById('exporb');
+const ecanvas=document.getElementById('ecanvas');
+const ectx=ecanvas.getContext('2d');
+const rmenu=document.getElementById('rmenu');
+let eparts=mkParts(1400);
+let erotY=0;
 
-function initExpandedCanvas(){
-  const size=Math.min(window.innerWidth*.72,320);
-  expandedCanvas.width=size*dpr;expandedCanvas.height=size*dpr;
-  expandedCanvas.style.width=size+'px';expandedCanvas.style.height=size+'px';
-  expandedCtx.setTransform(dpr,0,0,dpr,0,0);
+function initECanvas(){
+  const sz=Math.min(window.innerWidth*.75,300);
+  ecanvas.width=sz*dpr;ecanvas.height=sz*dpr;
+  ecanvas.style.width=sz+'px';ecanvas.style.height=sz+'px';
+  ectx.setTransform(dpr,0,0,dpr,0,0);
 }
-initExpandedCanvas();
+initECanvas();
 
-function animateExpanded(){
-  if(orbState!=='expanded'){requestAnimationFrame(animateExpanded);return;}
-  expandedRotY+=.001;
-  const size=parseInt(expandedCanvas.style.width);
-  renderSphere(expandedCtx,expandedParticles,size,size,expandedRotY,.9,.6);
-  requestAnimationFrame(animateExpanded);
+function animExp(){
+  if(state!=='expanded'){requestAnimationFrame(animExp);return;}
+  erotY+=.001;
+  const sz=parseInt(ecanvas.style.width);
+  renderSphere(ectx,eparts,sz,sz,erotY,.85,.55);
+  requestAnimationFrame(animExp);
 }
-animateExpanded();
+animExp();
 
-function handleOrbTap(){
-  if(orbState==='floating'){expandOrb();}
-}
-
-function expandOrb(){
-  orbState='expanded';
-  floatingOrb.style.opacity='0';
-  expandOverlay.classList.add('active');
-  expandedOrb.classList.add('active');
-  notifBadge.classList.remove('visible');
-  buildRadialMenu();
-  setTimeout(()=>radialMenu.querySelectorAll('.app-icon').forEach(el=>el.classList.add('visible')),100);
-  haptic(15);
+function handleTap(){
+  if(state==='floating')expand();
 }
 
-function collapseOrb(){
-  orbState='floating';
-  radialMenu.querySelectorAll('.app-icon').forEach(el=>el.classList.remove('visible'));
+function expand(){
+  state='expanded';
+  haptic(12);
+  forb.style.opacity='0';
+  overlay.classList.add('active');
+  document.getElementById('home').classList.add('blurred');
+  exporb.classList.add('active');
+  nbadge.classList.remove('vis');
+  buildMenu();
+  setTimeout(()=>rmenu.querySelectorAll('.ricon').forEach(el=>el.classList.add('vis')),80);
+}
+
+function collapse(){
+  state='floating';
+  haptic(8);
+  rmenu.querySelectorAll('.ricon').forEach(el=>el.classList.remove('vis'));
+  closeQA();
   setTimeout(()=>{
-    expandOverlay.classList.remove('active');
-    expandedOrb.classList.remove('active');
-    floatingOrb.style.opacity='1';
-    if(totalNotifs>0)notifBadge.classList.add('visible');
-  },250);
+    exporb.classList.remove('active');
+    overlay.classList.remove('active');
+    document.getElementById('home').classList.remove('blurred');
+    forb.style.opacity='1';
+    if(notifCount>0)nbadge.classList.add('vis');
+    startTimers();
+  },200);
 }
 
-expandOverlay.addEventListener('click',collapseOrb);
+overlay.addEventListener('click',collapse);
+exporb.addEventListener('click',e=>{if(e.target===exporb||e.target.classList.contains('exporb-wrap'))collapse();});
 
-function buildRadialMenu(){
-  radialMenu.innerHTML='';
-  const rect=document.querySelector('.expanded-orb-wrap').getBoundingClientRect();
-  const radius=rect.width*.7;
-  APPS.forEach((app,i)=>{
-    const angle=-Math.PI/2+(i/APPS.length)*Math.PI*2;
-    const tx=Math.cos(angle)*radius;
-    const ty=Math.sin(angle)*radius;
-    const el=document.createElement('div');
-    el.className='app-icon';
-    el.style.setProperty('--tx',tx+'px');
-    el.style.setProperty('--ty',ty+'px');
-    el.style.transitionDelay=(i*30)+'ms';
-    let inner=ICONS[app.icon]+`<span class="app-label">${app.name}</span>`;
-    if(notifications[app.name]){
-      inner+=`<span class="app-notif" style="background:${app.color}"></span>`;
+// ═══════════════════════════════════════════
+// ★ MAGNETIC EDGE-AWARE MENU ★
+// ═══════════════════════════════════════════
+function buildMenu(){
+  rmenu.innerHTML='';
+  const sorted=[...APPS].sort((a,b)=>(localStorage.getItem('c_'+b.n)||0)-(localStorage.getItem('c_'+a.n)||0));
+  const wrap=document.querySelector('.exporb-wrap');
+  const rect=wrap.getBoundingClientRect();
+  const cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
+  const orbR=rect.width*.7;
+  const pad=45,sbH=40,dockH=110;
+  const vw=window.innerWidth,vh=window.innerHeight;
+  
+  // Calculate base positions
+  let icons=sorted.map((app,i)=>{
+    const ang=-Math.PI/2+(i/sorted.length)*Math.PI*2;
+    return{app,ang,bx:cx+Math.cos(ang)*orbR,by:cy+Math.sin(ang)*orbR,x:0,y:0};
+  });
+  
+  // Apply edge repulsion
+  const thresh=orbR*.6;
+  icons.forEach(ic=>{
+    let fx=0,fy=0;
+    const dl=ic.bx-pad;if(dl<thresh)fx+=Math.pow((thresh-dl)/thresh,2)*orbR*.7;
+    const dr=vw-pad-ic.bx;if(dr<thresh)fx-=Math.pow((thresh-dr)/thresh,2)*orbR*.7;
+    const dt=ic.by-pad-sbH;if(dt<thresh)fy+=Math.pow((thresh-dt)/thresh,2)*orbR*.7;
+    const db=vh-dockH-pad-ic.by;if(db<thresh)fy-=Math.pow((thresh-db)/thresh,2)*orbR*.7;
+    ic.x=Math.max(pad,Math.min(vw-pad,ic.bx+fx));
+    ic.y=Math.max(pad+sbH,Math.min(vh-dockH-pad,ic.by+fy));
+  });
+  
+  // Separation pass (3x)
+  for(let p=0;p<3;p++){
+    for(let i=0;i<icons.length;i++){
+      for(let j=i+1;j<icons.length;j++){
+        const dx=icons[j].x-icons[i].x,dy=icons[j].y-icons[i].y;
+        const dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist<68){
+          const over=(68-dist)/2;
+          const ang=Math.atan2(dy,dx);
+          icons[i].x-=Math.cos(ang)*over;icons[i].y-=Math.sin(ang)*over;
+          icons[j].x+=Math.cos(ang)*over;icons[j].y+=Math.sin(ang)*over;
+        }
+      }
     }
-    el.innerHTML=inner;
-    el.addEventListener('click',e=>{
-      e.stopPropagation();
-      haptic(25);
-      showToast(`Opening ${app.name}...`);
-      collapseOrb();
-    });
-    radialMenu.appendChild(el);
+  }
+  
+  // Render
+  icons.forEach((ic,i)=>{
+    const el=document.createElement('div');
+    el.className='ricon'+(i===0?' top':'');
+    const tx=ic.x-cx,ty=ic.y-cy;
+    el.style.setProperty('--x',tx+'px');
+    el.style.setProperty('--y',ty+'px');
+    el.style.transitionDelay=(i*35)+'ms';
+    el.style.left='50%';el.style.top='50%';el.style.marginLeft='-29px';el.style.marginTop='-29px';
+    let html=ICONS[ic.app.i]+`<span class="ricon-lbl">${ic.app.n}</span>`;
+    if(notifs[ic.app.n])html+=`<span class="ricon-dot" style="background:${ic.app.c}"></span>`;
+    el.innerHTML=html;
+    el.dataset.app=JSON.stringify(ic.app);
+    el.dataset.ang=ic.ang;
+    
+    let holdT;
+    el.addEventListener('pointerdown',e=>{e.stopPropagation();holdT=setTimeout(()=>showQA(ic.app,el,ic.ang),400);});
+    el.addEventListener('pointerup',e=>{e.stopPropagation();clearTimeout(holdT);if(!qactions)launchApp(ic.app,el);});
+    el.addEventListener('pointerleave',()=>clearTimeout(holdT));
+    
+    rmenu.appendChild(el);
   });
 }
 
-// Long press for voice
-let holdTimer=null,didHold=false;
-floatingOrb.addEventListener('pointerdown',e=>{
-  didHold=false;
-  holdTimer=setTimeout(()=>{didHold=true;enterVoiceMode();},500);
-});
-floatingOrb.addEventListener('pointerup',()=>clearTimeout(holdTimer));
-floatingOrb.addEventListener('pointerleave',()=>clearTimeout(holdTimer));
+function showQA(app,el,ang){
+  haptic(10);closeQA();qactions=app.n;
+  const acts=app.q||[];
+  const base=ang+Math.PI;
+  acts.forEach((a,i)=>{
+    const pill=document.createElement('div');
+    pill.className='qpill';
+    const aa=base+(i-(acts.length-1)/2)*.35;
+    pill.style.setProperty('--qx',Math.cos(aa)*70+'px');
+    pill.style.setProperty('--qy',Math.sin(aa)*70+'px');
+    pill.style.transitionDelay=(i*25)+'ms';
+    pill.textContent=a;
+    pill.style.left='50%';pill.style.top='50%';
+    pill.addEventListener('click',e=>{e.stopPropagation();haptic(15);toast(`Opening ${a}...`);collapse();});
+    rmenu.appendChild(pill);
+    requestAnimationFrame(()=>pill.classList.add('vis'));
+  });
+}
 
-// Swipe up for info card
-let swipeStartY=0;
-floatingOrb.addEventListener('touchstart',e=>{swipeStartY=e.touches[0].clientY;});
-floatingOrb.addEventListener('touchend',e=>{
-  const dy=e.changedTouches[0].clientY-swipeStartY;
-  if(dy<-40&&orbState==='floating'){showInfoCard();}
-});
+function closeQA(){
+  qactions=null;
+  rmenu.querySelectorAll('.qpill').forEach(p=>p.remove());
+}
+
+function launchApp(app,el){
+  haptic([15,40,25]);
+  localStorage.setItem('c_'+app.n,(parseInt(localStorage.getItem('c_'+app.n)||0)+1));
+  el.style.transition='transform .35s ease-in,opacity .3s';
+  el.style.transform='scale(20)';el.style.opacity='0';
+  rmenu.querySelectorAll('.ricon').forEach(e=>{if(e!==el){e.style.transition='opacity .15s';e.style.opacity='0';}});
+  setTimeout(()=>{toast(app.n);collapse();},350);
+}
 
 // ═══════════════════════════════════════════
-// VOICE MODE
+// HOLD → VOICE
 // ═══════════════════════════════════════════
-const voiceOverlay=document.getElementById('voiceOverlay');
-const voiceOrbEl=document.getElementById('voiceOrb');
-const voiceCanvas=document.getElementById('voiceCanvas');
-const voiceCtx=voiceCanvas.getContext('2d');
-const voiceStatus=document.getElementById('voiceStatus');
-const voiceTranscript=document.getElementById('voiceTranscript');
-const voiceResponse=document.getElementById('voiceResponse');
-let voiceParticles=createParticles(800);
-let voiceRotY=0,audioLevel=0,targetAudioLevel=0;
+const voverlay=document.getElementById('voverlay');
+const vorb=document.getElementById('vorb');
+const vcanvas=document.getElementById('vcanvas');
+const vctx=vcanvas.getContext('2d');
+const vstatus=document.getElementById('vstatus');
+const vtrans=document.getElementById('vtrans');
+const vresp=document.getElementById('vresp');
+let vparts=mkParts(900);
+let vrotY=0,audio=0,taudio=0;
+let recognition,recognizing=false;
 
-function initVoiceCanvas(){
-  voiceCanvas.width=200*dpr;voiceCanvas.height=200*dpr;
-  voiceCanvas.style.width='200px';voiceCanvas.style.height='200px';
-  voiceCtx.setTransform(dpr,0,0,dpr,0,0);
+vcanvas.width=400*dpr;vcanvas.height=400*dpr;
+vctx.setTransform(dpr,0,0,dpr,0,0);
+
+function animVoice(){
+  if(state!=='voice'){requestAnimationFrame(animVoice);return;}
+  vrotY+=.002;audio+=(taudio-audio)*.15;
+  renderSphere(vctx,vparts,400,400,vrotY,1,1.1,true,audio);
+  requestAnimationFrame(animVoice);
 }
-initVoiceCanvas();
+animVoice();
 
-function animateVoice(){
-  if(!voiceActive){requestAnimationFrame(animateVoice);return;}
-  voiceRotY+=.002;
-  audioLevel+=(targetAudioLevel-audioLevel)*.15;
-  renderSphere(voiceCtx,voiceParticles,200,200,voiceRotY,1,1.2,true,audioLevel);
-  requestAnimationFrame(animateVoice);
-}
-animateVoice();
+let holdT;
+forb.addEventListener('pointerdown',()=>{holdT=setTimeout(enterVoice,500);});
+forb.addEventListener('pointerup',()=>clearTimeout(holdT));
+forb.addEventListener('pointerleave',()=>clearTimeout(holdT));
 
-function enterVoiceMode(){
-  if(voiceActive)return;
-  voiceActive=true;
-  orbState='voice';
-  floatingOrb.style.opacity='0';
-  voiceOverlay.classList.add('active');
-  voiceOrbEl.classList.add('active');
-  voiceTranscript.textContent='';
-  voiceResponse.textContent='';
-  voiceStatus.textContent='Listening';
+function enterVoice(){
+  if(state!=='floating')return;
+  state='voice';
   haptic([10,30,20,30,40]);
-  startRecognition();
-  simulateAudio();
+  forb.style.opacity='0';
+  voverlay.classList.add('active');
+  vorb.classList.add('active');
+  vtrans.textContent='';vresp.textContent='';vstatus.textContent='Listening';
+  simAudio();startRec();
 }
 
-function exitVoiceMode(){
-  voiceActive=false;
-  orbState='floating';
-  voiceOverlay.classList.remove('active');
-  voiceOrbEl.classList.remove('active');
-  floatingOrb.style.opacity='1';
-  if(recognition&&recognizing){try{recognition.stop();}catch(e){}}
+function exitVoice(){
+  state='floating';
+  voverlay.classList.remove('active');
+  vorb.classList.remove('active');
+  forb.style.opacity='1';
+  taudio=0;
+  if(recognition&&recognizing)try{recognition.stop();}catch(e){}
+  startTimers();
 }
 
 let audioSim;
-function simulateAudio(){
-  clearInterval(audioSim);
-  audioSim=setInterval(()=>{
-    if(!voiceActive){clearInterval(audioSim);return;}
-    targetAudioLevel=.02+Math.random()*.06;
-  },100);
-}
+function simAudio(){clearInterval(audioSim);audioSim=setInterval(()=>{if(state!=='voice'){clearInterval(audioSim);return;}taudio=.02+Math.random()*.06;},100);}
 
-function startRecognition(){
+function startRec(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){voiceStatus.textContent='Not supported';setTimeout(exitVoiceMode,2000);return;}
-  recognition=new SR();
-  recognition.lang='en-US';recognition.interimResults=true;
+  if(!SR){vstatus.textContent='Not supported';setTimeout(exitVoice,2000);return;}
+  recognition=new SR();recognition.lang='en-US';recognition.interimResults=true;
   recognition.onstart=()=>{recognizing=true;};
   recognition.onresult=e=>{
-    let final='',interim='';
-    for(let i=e.resultIndex;i<e.results.length;i++){
-      if(e.results[i].isFinal)final+=e.results[i][0].transcript;
-      else interim+=e.results[i][0].transcript;
-    }
-    voiceTranscript.textContent=final||interim;
-    targetAudioLevel=.3+Math.random()*.5;
-    if(final)processCommand(final.toLowerCase());
+    let f='',int='';
+    for(let i=e.resultIndex;i<e.results.length;i++){if(e.results[i].isFinal)f+=e.results[i][0].transcript;else int+=e.results[i][0].transcript;}
+    vtrans.textContent=f||int;taudio=.3+Math.random()*.5;
+    if(f)procCmd(f.toLowerCase());
   };
-  recognition.onend=()=>{recognizing=false;if(voiceActive&&!voiceTranscript.textContent){try{recognition.start();}catch(e){}}};
+  recognition.onend=()=>{recognizing=false;if(state==='voice'&&!vtrans.textContent)try{recognition.start();}catch(e){}};
   try{recognition.start();}catch(e){}
 }
 
-function processCommand(cmd){
-  voiceStatus.textContent='Processing';
-  targetAudioLevel=0;
-  let response=cmd.includes('time')?`It's ${new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}`:'Got it';
-  setTimeout(()=>{
-    voiceStatus.textContent='';
-    voiceResponse.textContent=response;
-    if('speechSynthesis'in window){speechSynthesis.speak(new SpeechSynthesisUtterance(response));}
-    setTimeout(exitVoiceMode,2000);
-  },400);
+function procCmd(cmd){
+  vstatus.textContent='Processing';taudio=0;
+  let resp=cmd.includes('time')?`It's ${new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}`:'Got it';
+  setTimeout(()=>{vstatus.textContent='';vresp.textContent=resp;if('speechSynthesis'in window)speechSynthesis.speak(new SpeechSynthesisUtterance(resp));setTimeout(exitVoice,2000);},400);
 }
 
-voiceOverlay.addEventListener('click',exitVoiceMode);
+voverlay.addEventListener('click',exitVoice);
 
 // ═══════════════════════════════════════════
-// INFO CARD
+// SWIPE → INFO CARD
 // ═══════════════════════════════════════════
-const infoCard=document.getElementById('infoCard');
-const infoTime=document.getElementById('infoTime');
-const infoDate=document.getElementById('infoDate');
-let infoTimeout=null;
+const icard=document.getElementById('icard');
+const itm=document.getElementById('itm');
+const idt=document.getElementById('idt');
+let swY=0,icardT;
 
-function showInfoCard(){
-  const now=new Date();
-  infoTime.textContent=now.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
-  const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  infoDate.textContent=`${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}`;
-  infoCard.style.left=orbPos.x+'px';
-  infoCard.style.top=(orbPos.y-180)+'px';
-  infoCard.classList.add('visible');
-  clearTimeout(infoTimeout);
-  infoTimeout=setTimeout(()=>infoCard.classList.remove('visible'),4000);
-}
-infoCard.addEventListener('click',()=>infoCard.classList.remove('visible'));
-
-// ═══════════════════════════════════════════
-// LAUNCHER MODE
-// ═══════════════════════════════════════════
-const launcherMode=document.getElementById('launcherMode');
-const launcherOrb=document.getElementById('launcherOrb');
-const launcherCanvas=document.getElementById('launcherCanvas');
-const launcherCtx=launcherCanvas.getContext('2d');
-const launcherSuggestions=document.getElementById('launcherSuggestions');
-const appDrawer=document.getElementById('appDrawer');
-const appDrawerGrid=document.getElementById('appDrawerGrid');
-const notifShade=document.getElementById('notifShade');
-let launcherParticles=createParticles(1500);
-let launcherRotY=0;
-
-function initLauncherCanvas(){
-  const size=Math.min(window.innerWidth*.72,340);
-  launcherCanvas.width=size*dpr;launcherCanvas.height=size*dpr;
-  launcherCanvas.style.width=size+'px';launcherCanvas.style.height=size+'px';
-  launcherCtx.setTransform(dpr,0,0,dpr,0,0);
-}
-initLauncherCanvas();
-
-function animateLauncher(){
-  if(mode!=='launcher'){requestAnimationFrame(animateLauncher);return;}
-  launcherRotY+=.001;
-  const size=parseInt(launcherCanvas.style.width);
-  renderSphere(launcherCtx,launcherParticles,size,size,launcherRotY);
-  requestAnimationFrame(animateLauncher);
-}
-animateLauncher();
-
-// Build suggestions
-function buildSuggestions(){
-  const hour=new Date().getHours();
-  let apps;
-  if(hour>=6&&hour<12)apps=[APPS[4],APPS[5],APPS[3]]; // Gmail, Maps, Spotify
-  else if(hour>=12&&hour<18)apps=[APPS[4],APPS[5],APPS[3]];
-  else apps=[APPS[6],APPS[3],APPS[1]]; // Instagram, Spotify, Messages
-  launcherSuggestions.innerHTML='<span class="launcher-suggestions-label">Suggested</span>';
-  apps.forEach(app=>{
-    const el=document.createElement('div');
-    el.className='launcher-suggestion';
-    el.innerHTML=`<div class="launcher-suggestion-icon" style="background:${app.color}">${ICONS[app.icon].replace('stroke=','fill=').replace('stroke-width="1.5"','')}</div><span class="launcher-suggestion-label">${app.name}</span>`;
-    el.addEventListener('click',()=>{haptic(20);showToast(`Opening ${app.name}...`);});
-    launcherSuggestions.appendChild(el);
-  });
-}
-buildSuggestions();
-
-// Build app drawer
-function buildAppDrawer(){
-  appDrawerGrid.innerHTML='';
-  [...APPS,...SIM_APPS].sort((a,b)=>a.name.localeCompare(b.name)).forEach(app=>{
-    const el=document.createElement('div');
-    el.className='app-drawer-icon';
-    el.innerHTML=`<div class="sim-appicon-box" style="background:${app.color||'#333'}">${ICONS[app.icon]||'<svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" fill="#fff"/></svg>'}</div><span class="sim-appicon-label">${app.name}</span>`;
-    el.addEventListener('click',()=>{haptic(20);showToast(`Opening ${app.name}...`);appDrawer.classList.remove('open');});
-    appDrawerGrid.appendChild(el);
-  });
-}
-buildAppDrawer();
-
-// Launcher gestures
-launcherOrb.addEventListener('click',()=>{if(mode==='launcher')expandOrb();});
-let launcherSwipeY=0;
-launcherMode.addEventListener('touchstart',e=>{launcherSwipeY=e.touches[0].clientY;});
-launcherMode.addEventListener('touchend',e=>{
-  const dy=e.changedTouches[0].clientY-launcherSwipeY;
-  if(dy<-80&&launcherSwipeY>window.innerHeight*.7){appDrawer.classList.add('open');}
-  if(dy>80&&launcherSwipeY<100){notifShade.classList.add('open');}
-});
-appDrawer.addEventListener('touchend',e=>{if(e.target===appDrawer||e.target.classList.contains('app-drawer-handle'))appDrawer.classList.remove('open');});
-notifShade.addEventListener('touchend',e=>{if(e.changedTouches[0].clientY-launcherSwipeY>80)notifShade.classList.remove('open');});
-document.querySelectorAll('.notif-card').forEach(card=>{
-  card.addEventListener('click',()=>{haptic(15);showToast('Opening notification...');notifShade.classList.remove('open');});
-});
-
-// ═══════════════════════════════════════════
-// WIDGET MODE
-// ═══════════════════════════════════════════
-const widgetModeEl=document.getElementById('widgetMode');
-const widgetCanvas=document.getElementById('widgetCanvas');
-const widgetCtx=widgetCanvas.getContext('2d');
-const widgetRowTop=document.getElementById('widgetRowTop');
-const widgetRowBottom=document.getElementById('widgetRowBottom');
-const widgetOrbWrap=document.getElementById('widgetOrbWrap');
-let widgetParticles=createParticles(500);
-let widgetRotY=0;
-
-function initWidgetCanvas(){
-  widgetCanvas.width=140*dpr;widgetCanvas.height=140*dpr;
-  widgetCanvas.style.width='140px';widgetCanvas.style.height='140px';
-  widgetCtx.setTransform(dpr,0,0,dpr,0,0);
-}
-initWidgetCanvas();
-
-function renderWidgetFrame(){
-  if(mode!=='widget')return;
-  widgetRotY+=.1;
-  renderSphere(widgetCtx,widgetParticles,140,140,widgetRotY);
-}
-setInterval(renderWidgetFrame,2000);
-
-function buildWidgetIcons(){
-  widgetRowTop.innerHTML='';widgetRowBottom.innerHTML='';
-  APPS.slice(0,3).forEach(app=>{
-    const wrap=document.createElement('div');wrap.style.cssText='display:flex;flex-direction:column;align-items:center;';
-    const icon=document.createElement('div');icon.className='widget-icon';icon.innerHTML=ICONS[app.icon];
-    icon.addEventListener('click',()=>{haptic(20);showToast(`Opening ${app.name}...`);});
-    const label=document.createElement('span');label.className='widget-icon-label';label.textContent=app.name;
-    wrap.appendChild(icon);wrap.appendChild(label);widgetRowTop.appendChild(wrap);
-  });
-  APPS.slice(3,6).forEach(app=>{
-    const wrap=document.createElement('div');wrap.style.cssText='display:flex;flex-direction:column;align-items:center;';
-    const icon=document.createElement('div');icon.className='widget-icon';icon.innerHTML=ICONS[app.icon];
-    icon.addEventListener('click',()=>{haptic(20);showToast(`Opening ${app.name}...`);});
-    const label=document.createElement('span');label.className='widget-icon-label';label.textContent=app.name;
-    wrap.appendChild(icon);wrap.appendChild(label);widgetRowBottom.appendChild(wrap);
-  });
-}
-buildWidgetIcons();
-widgetOrbWrap.addEventListener('click',()=>{haptic(25);showToast('Opening ORB...');switchMode('overlay');});
-
-// ═══════════════════════════════════════════
-// MODE SWITCHER
-// ═══════════════════════════════════════════
-const modeSwitcher=document.getElementById('modeSwitcher');
-const simHome=document.getElementById('simHome');
-
-modeSwitcher.querySelectorAll('.mode-btn').forEach(btn=>{
-  btn.addEventListener('click',()=>switchMode(btn.dataset.mode));
-});
-
-function switchMode(newMode){
-  mode=newMode;
-  modeSwitcher.querySelectorAll('.mode-btn').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
-  
-  // Hide all
-  floatingOrb.style.display='none';
-  expandOverlay.classList.remove('active');
-  expandedOrb.classList.remove('active');
-  voiceOverlay.classList.remove('active');
-  voiceOrbEl.classList.remove('active');
-  launcherMode.classList.remove('active');
-  widgetModeEl.classList.remove('active');
-  simHome.classList.remove('hidden');
-  
-  orbState='floating';
-  voiceActive=false;
-  
-  if(mode==='overlay'){
-    floatingOrb.style.display='block';
-    floatingOrb.style.opacity='1';
-    floatingOrb.style.transform=`translate(${orbPos.x}px,${orbPos.y}px)`;
-    startInactivityTimers();
-  }else if(mode==='launcher'){
-    simHome.classList.add('hidden');
-    launcherMode.classList.add('active');
-  }else if(mode==='widget'){
-    widgetModeEl.classList.add('active');
-    renderWidgetFrame();
+forb.addEventListener('touchstart',e=>{swY=e.touches[0].clientY;});
+forb.addEventListener('touchend',e=>{
+  if(e.changedTouches[0].clientY-swY<-45&&state==='floating'){
+    const now=new Date();
+    itm.textContent=now.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+    const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const mons=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    idt.textContent=`${days[now.getDay()]}, ${mons[now.getMonth()]} ${now.getDate()}`;
+    icard.style.left=Math.min(window.innerWidth-245,Math.max(15,orbPos.x-80))+'px';
+    icard.style.top=(orbPos.y-170)+'px';
+    icard.classList.add('vis');
+    clearTimeout(icardT);icardT=setTimeout(()=>icard.classList.remove('vis'),4000);
   }
+});
+icard.addEventListener('click',()=>icard.classList.remove('vis'));
+
+// ═══════════════════════════════════════════
+// LAUNCHER
+// ═══════════════════════════════════════════
+const launcher=document.getElementById('launcher');
+const lorb=document.getElementById('lorb');
+const lcanvas=document.getElementById('lcanvas');
+const lctx=lcanvas.getContext('2d');
+const lsugg=document.getElementById('lsugg');
+const adrawer=document.getElementById('adrawer');
+const adgrid=document.getElementById('adgrid');
+const nshade=document.getElementById('nshade');
+const ambov=document.getElementById('ambov');
+const ambtm=document.getElementById('ambtm');
+let lparts=mkParts(1400);
+let lrotY=0;
+
+function initLCanvas(){
+  const sz=Math.min(window.innerWidth*.75,320);
+  lcanvas.width=sz*dpr;lcanvas.height=sz*dpr;
+  lcanvas.style.width=sz+'px';lcanvas.style.height=sz+'px';
+  lctx.setTransform(dpr,0,0,dpr,0,0);
+}
+initLCanvas();
+
+function animLauncher(){
+  if(mode!=='launcher'||state==='ambient'){requestAnimationFrame(animLauncher);return;}
+  lrotY+=.001;
+  const sz=parseInt(lcanvas.style.width);
+  renderSphere(lctx,lparts,sz,sz,lrotY);
+  requestAnimationFrame(animLauncher);
+}
+animLauncher();
+
+function buildSugg(){
+  const h=new Date().getHours();
+  let apps;
+  if(h>=6&&h<12)apps=[APPS[4],APPS[5],APPS[3]];
+  else if(h>=18)apps=[APPS[6],APPS[3],APPS[1]];
+  else apps=[APPS[4],APPS[5],APPS[3]];
+  lsugg.innerHTML='<span class="lsugg-lbl">Suggested</span>';
+  apps.forEach(a=>{
+    const p=document.createElement('div');p.className='lsugg-pill';
+    p.innerHTML=`<div class="lsugg-icon" style="background:${a.c}">${ICONS[a.i].replace(/stroke=/g,'fill=').replace('stroke-width="1.5"','')}</div><span class="lsugg-name">${a.n}</span>`;
+    p.addEventListener('click',()=>{haptic(20);toast(`Opening ${a.n}...`);});
+    lsugg.appendChild(p);
+  });
+}
+buildSugg();
+
+function buildDrawer(){
+  adgrid.innerHTML='';
+  [...APPS,...GRID_APPS].sort((a,b)=>(a.n||a.name).localeCompare(b.n||b.name)).forEach(a=>{
+    const d=document.createElement('div');d.className='appi';d.style.filter='none';
+    d.innerHTML=`<div class="appi-box" style="background:${a.c||a.color}">${ICONS[a.i]||'<svg viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="2" fill="#fff"/></svg>'}</div><span class="appi-lbl">${a.n||a.name}</span>`;
+    d.addEventListener('click',()=>{haptic(20);toast(`Opening ${a.n||a.name}...`);adrawer.classList.remove('open');});
+    adgrid.appendChild(d);
+  });
+}
+buildDrawer();
+
+lorb.addEventListener('click',()=>{if(mode==='launcher'&&state==='floating')expand();});
+
+let lswY=0;
+launcher.addEventListener('touchstart',e=>{lswY=e.touches[0].clientY;});
+launcher.addEventListener('touchend',e=>{
+  const dy=e.changedTouches[0].clientY-lswY;
+  if(dy<-80&&lswY>window.innerHeight*.7)adrawer.classList.add('open');
+  if(dy>80&&lswY<60)nshade.classList.add('open');
+});
+adrawer.addEventListener('click',e=>{if(e.target===adrawer||e.target.classList.contains('adrawer-handle'))adrawer.classList.remove('open');});
+nshade.querySelectorAll('.ncard').forEach(c=>c.addEventListener('click',()=>{haptic(15);toast('Opening...');nshade.classList.remove('open');}));
+document.addEventListener('touchend',e=>{if(nshade.classList.contains('open')&&e.changedTouches[0].clientY-lswY>80)nshade.classList.remove('open');});
+
+// Double-tap ambient
+let lastTap=0;
+lorb.addEventListener('click',()=>{
+  const now=Date.now();
+  if(now-lastTap<300&&state==='floating'){
+    state='ambient';
+    ambtm.textContent=new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+    ambov.classList.add('vis');ambtm.classList.add('vis');
+  }
+  lastTap=now;
+});
+ambov.addEventListener('click',()=>{state='floating';ambov.classList.remove('vis');ambtm.classList.remove('vis');});
+
+// ═══════════════════════════════════════════
+// MODE SWITCH
+// ═══════════════════════════════════════════
+const mswitch=document.getElementById('mswitch');
+const home=document.getElementById('home');
+
+mswitch.querySelectorAll('.mswitch-btn').forEach(b=>b.addEventListener('click',()=>switchMode(b.dataset.m)));
+
+function switchMode(m){
+  mode=m;localStorage.setItem('orb_mode',m);
+  mswitch.querySelectorAll('.mswitch-btn').forEach(b=>b.classList.toggle('active',b.dataset.m===m));
+  forb.style.display=m==='overlay'?'block':'none';
+  home.classList.toggle('hidden',m!=='overlay');
+  launcher.classList.toggle('active',m==='launcher');
+  overlay.classList.remove('active');
+  exporb.classList.remove('active');
+  voverlay.classList.remove('active');
+  vorb.classList.remove('active');
+  state='floating';
+  if(m==='overlay'){forb.style.opacity='1';updForb();startTimers();}
 }
 
 // ═══════════════════════════════════════════
-// SIMULATED HOME SCREEN
+// BUILD HOME
 // ═══════════════════════════════════════════
-const simAppGrid=document.getElementById('simAppGrid');
-const simDock=document.getElementById('simDock');
+const appgrid=document.getElementById('appgrid');
+const dock=document.getElementById('dock');
 
-function buildSimHome(){
-  simAppGrid.innerHTML='';
-  SIM_APPS.forEach(app=>{
-    const el=document.createElement('div');el.className='sim-appicon';
-    el.innerHTML=`<div class="sim-appicon-box" style="background:${app.color}"><svg viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="2" fill="rgba(255,255,255,.8)"/></svg></div><span class="sim-appicon-label">${app.name}</span>`;
-    simAppGrid.appendChild(el);
-  });
-  simDock.innerHTML='';
-  [APPS[0],APPS[1],APPS[2],SIM_APPS[0],APPS[5]].forEach(app=>{
-    const el=document.createElement('div');el.className='sim-appicon';
-    el.innerHTML=`<div class="sim-appicon-box" style="background:${app.color}">${ICONS[app.icon]||'<svg viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="2" fill="#fff"/></svg>'}</div>`;
-    simDock.appendChild(el);
-  });
-}
-buildSimHome();
+GRID_APPS.forEach(a=>{
+  const d=document.createElement('div');d.className='appi';
+  d.innerHTML=`<div class="appi-box" style="background:${a.c}"><svg viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="2" fill="rgba(255,255,255,.85)"/></svg></div><span class="appi-lbl">${a.n}</span>`;
+  appgrid.appendChild(d);
+});
+
+DOCK_APPS.forEach(n=>{
+  const a=APPS.find(x=>x.i===n);
+  const d=document.createElement('div');d.className='appi';d.style.filter='none';
+  d.innerHTML=`<div class="appi-box" style="background:${a.c}">${ICONS[a.i]}</div>`;
+  dock.appendChild(d);
+});
 
 // ═══════════════════════════════════════════
-// UTILITIES
+// UTILS
 // ═══════════════════════════════════════════
 function haptic(p){if(navigator.vibrate)navigator.vibrate(p);}
-function showToast(msg,duration=1500){
-  const toast=document.getElementById('toast');
-  toast.textContent=msg;toast.classList.add('visible');
-  setTimeout(()=>toast.classList.remove('visible'),duration);
-}
-
-// Clocks
-function updateClocks(){
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('vis');setTimeout(()=>t.classList.remove('vis'),1500);}
+function updClock(){
   const t=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:true});
-  document.getElementById('simClock').textContent=t;
-  document.getElementById('launcherClock').textContent=t;
-  document.getElementById('widgetClock').textContent=t;
+  document.getElementById('clock').textContent=t;
+  document.getElementById('lclock').textContent=t;
 }
-updateClocks();setInterval(updateClocks,10000);
+updClock();setInterval(updClock,10000);
 
-// iOS detection
-if(/iPhone|iPad|iPod/.test(navigator.userAgent)&&!localStorage.getItem('ios_banner_shown')){
-  setTimeout(()=>{document.getElementById('iosBanner').classList.add('visible');},1000);
-  setTimeout(()=>{document.getElementById('iosBanner').classList.remove('visible');localStorage.setItem('ios_banner_shown','true');},6000);
+// ═══════════════════════════════════════════
+// ONBOARDING
+// ═══════════════════════════════════════════
+const onboard=document.getElementById('onboard');
+if(!localStorage.getItem('orb_onboarded')){
+  forb.style.opacity='0';forb.style.transform='translate('+orbPos.x+'px,'+orbPos.y+'px) scale(0)';
+  setTimeout(()=>{
+    forb.style.transition='all .8s cubic-bezier(.175,.885,.32,1.275)';
+    forb.style.opacity='1';forb.style.transform='translate('+orbPos.x+'px,'+orbPos.y+'px) scale(1)';
+    setTimeout(()=>{forb.style.transition='';},800);
+  },1000);
+  onboard.style.left=(orbPos.x-60)+'px';onboard.style.top=(orbPos.y+80)+'px';
+  setTimeout(()=>onboard.classList.add('vis'),1800);
+  setTimeout(()=>onboard.classList.remove('vis'),5500);
+  localStorage.setItem('orb_onboarded','true');
 }
 
-// PWA
+// Init
+switchMode(mode);
 if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
-
-// Initialize
-switchMode('overlay');
 </script>
 </body>
 </html>
