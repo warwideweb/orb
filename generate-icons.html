@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head><title>Generate ORB Icons</title></head>
+<body style="background:#000;display:flex;flex-direction:column;align-items:center;gap:20px;padding:40px">
+<canvas id="c192" width="192" height="192"></canvas>
+<canvas id="c512" width="512" height="512"></canvas>
+<script>
+function drawOrb(canvas) {
+  const ctx = canvas.getContext('2d');
+  const s = canvas.width;
+  const c = s / 2;
+  const r = s * 0.4;
+
+  // Background
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, s, s);
+
+  // Outer glow
+  const glow = ctx.createRadialGradient(c, c, r * 0.5, c, c, r * 1.5);
+  glow.addColorStop(0, 'rgba(0,102,255,0.3)');
+  glow.addColorStop(0.5, 'rgba(139,0,255,0.15)');
+  glow.addColorStop(1, 'transparent');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, s, s);
+
+  // Main orb gradient
+  const grad = ctx.createRadialGradient(c * 0.85, c * 0.75, 0, c, c, r);
+  grad.addColorStop(0, '#00FFFF');
+  grad.addColorStop(0.3, '#0066FF');
+  grad.addColorStop(0.6, '#8B00FF');
+  grad.addColorStop(1, '#000022');
+  
+  ctx.beginPath();
+  ctx.arc(c, c, r, 0, Math.PI * 2);
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Glass highlight
+  ctx.beginPath();
+  ctx.ellipse(c - r * 0.15, c - r * 0.25, r * 0.5, r * 0.35, -0.3, 0, Math.PI * 2);
+  const highlight = ctx.createLinearGradient(c - r * 0.5, c - r * 0.6, c, c);
+  highlight.addColorStop(0, 'rgba(255,255,255,0.25)');
+  highlight.addColorStop(1, 'transparent');
+  ctx.fillStyle = highlight;
+  ctx.fill();
+}
+
+drawOrb(document.getElementById('c192'));
+drawOrb(document.getElementById('c512'));
+
+// Instructions
+document.body.innerHTML += '<p style="color:#fff">Right-click → Save Image As:<br>orb-192.png and orb-512.png</p>';
+</script>
+</body>
+</html>
